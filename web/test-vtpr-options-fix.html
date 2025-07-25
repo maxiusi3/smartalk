@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>vTPR 选项显示问题修复验证</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .test-button {
+            display: inline-block;
+            padding: 12px 24px;
+            margin: 10px;
+            background: #3b82f6;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+        .test-button:hover {
+            background: #2563eb;
+        }
+        .fixed-button {
+            background: #10b981;
+        }
+        .fixed-button:hover {
+            background: #059669;
+        }
+        .problem-button {
+            background: #ef4444;
+        }
+        .problem-button:hover {
+            background: #dc2626;
+        }
+        .test-section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+        }
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .comparison-item {
+            padding: 15px;
+            border-radius: 8px;
+        }
+        .before {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+        }
+        .after {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+        }
+        .code-block {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+        .highlight {
+            background: #fff3cd;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .status.fixed {
+            background: #dcfce7;
+            color: #166534;
+        }
+        .status.problem {
+            background: #fef2f2;
+            color: #991b1b;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🔧 vTPR 选项显示问题修复验证</h1>
+        
+        <div class="test-section">
+            <h2>问题描述</h2>
+            <p>用户在 vTPR（音画匹配训练）页面中，右侧的四个视频选项无法显示，导致学习流程中断。</p>
+            
+            <div class="comparison">
+                <div class="comparison-item before">
+                    <h3>🚫 修复前</h3>
+                    <ul>
+                        <li>右侧只显示"请先听完音频内容"</li>
+                        <li>四个视频选项不显示</li>
+                        <li>用户无法继续学习</li>
+                        <li>音频设置为无限循环播放</li>
+                    </ul>
+                </div>
+                <div class="comparison-item after">
+                    <h3>✅ 修复后</h3>
+                    <ul>
+                        <li>音频播放完成后自动显示选项</li>
+                        <li>四个视频选项正确渲染</li>
+                        <li>添加了"跳过音频"按钮</li>
+                        <li>用户可以正常继续学习</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>测试链接</h2>
+            <p><strong>修复后的 vTPR 页面：</strong></p>
+            <a href="http://localhost:3002/learning/vtpr" class="test-button fixed-button" target="_blank">
+                ✅ vTPR 音画匹配训练页面
+            </a>
+            
+            <p><strong>学习地图（验证 lesson-7 跳转）：</strong></p>
+            <a href="http://localhost:3002/learning" class="test-button" target="_blank">
+                🗺️ 学习地图页面
+            </a>
+            
+            <p><strong>直接测试选项显示：</strong></p>
+            <a href="javascript:void(0)" onclick="testOptionsDisplay()" class="test-button">
+                🧪 测试选项显示逻辑
+            </a>
+        </div>
+
+        <div class="test-section">
+            <h2>根本原因分析</h2>
+            <h3>问题根源</h3>
+            <p>音频播放器被设置为 <code>repeatMode="single"</code>，导致：</p>
+            <ul>
+                <li>音频无限循环播放，永不结束</li>
+                <li><code>onEnded</code> 回调永远不被触发</li>
+                <li><code>currentStep</code> 状态始终保持为 <code>'listening'</code></li>
+                <li>选项区域被条件渲染隐藏</li>
+            </ul>
+
+            <h3>修复方案</h3>
+            <div class="code-block">
+// 修复前
+&lt;AudioPlayer
+  src={mockLesson.audioSrc}
+  onEnded={handleAudioComplete}
+  showWaveform={true}
+  <span class="highlight">repeatMode="single"</span>  // 问题所在
+  className="mb-4"
+/&gt;
+
+// 修复后
+&lt;AudioPlayer
+  src={mockLesson.audioSrc}
+  onEnded={handleAudioComplete}
+  showWaveform={true}
+  <span class="highlight">repeatMode="none"</span>    // 允许音频结束
+  className="mb-4"
+/&gt;</div>
+        </div>
+
+        <div class="test-section">
+            <h2>修复内容详情</h2>
+            <h3>1. 音频播放模式修复</h3>
+            <ul>
+                <li>✅ 将 <code>repeatMode</code> 从 <code>"single"</code> 改为 <code>"none"</code></li>
+                <li>✅ 确保音频播放完成后触发 <code>onEnded</code> 回调</li>
+                <li>✅ 正确切换 <code>currentStep</code> 状态到 <code>'selecting'</code></li>
+            </ul>
+
+            <h3>2. 用户体验改进</h3>
+            <ul>
+                <li>✅ 添加"跳过音频，直接开始选择"按钮</li>
+                <li>✅ 防止音频加载失败时用户被困</li>
+                <li>✅ 添加调试日志便于问题排查</li>
+            </ul>
+
+            <h3>3. 选项渲染逻辑</h3>
+            <ul>
+                <li>✅ 条件渲染：<code>currentStep !== 'listening'</code> 时显示选项</li>
+                <li>✅ 网格布局：<code>grid-cols-2 gap-4</code> 显示四个选项</li>
+                <li>✅ 交互状态：选中、正确/错误反馈</li>
+            </ul>
+        </div>
+
+        <div class="test-section">
+            <h2>验证步骤</h2>
+            <ol>
+                <li>
+                    <strong>步骤 1:</strong> 访问 vTPR 页面
+                    <span class="status fixed">待验证</span>
+                </li>
+                <li>
+                    <strong>步骤 2:</strong> 等待音频播放完成（或点击跳过按钮）
+                    <span class="status fixed">待验证</span>
+                </li>
+                <li>
+                    <strong>步骤 3:</strong> 验证右侧显示四个视频选项
+                    <span class="status fixed">待验证</span>
+                </li>
+                <li>
+                    <strong>步骤 4:</strong> 点击任一选项，验证交互正常
+                    <span class="status fixed">待验证</span>
+                </li>
+                <li>
+                    <strong>步骤 5:</strong> 验证选择反馈和结果显示
+                    <span class="status fixed">待验证</span>
+                </li>
+            </ol>
+        </div>
+
+        <div class="test-section">
+            <h2>技术细节</h2>
+            <h3>AudioPlayer 组件行为</h3>
+            <ul>
+                <li><code>repeatMode="none"</code>: 播放完成后触发 onEnded</li>
+                <li><code>repeatMode="single"</code>: 无限循环，不触发 onEnded</li>
+                <li><code>repeatMode="segment"</code>: 片段循环播放</li>
+            </ul>
+
+            <h3>状态管理流程</h3>
+            <div class="code-block">
+1. 初始状态: currentStep = 'listening'
+2. 音频播放完成: handleAudioComplete() 被调用
+3. 状态切换: currentStep = 'selecting'
+4. 条件渲染: 显示四个视频选项
+5. 用户交互: 选择选项，显示反馈</div>
+        </div>
+
+        <div class="test-section">
+            <h2>预期结果</h2>
+            <div style="background: #f0fdf4; padding: 15px; border-radius: 8px; border: 1px solid #bbf7d0;">
+                <h3 style="color: #166534; margin-top: 0;">✅ 修复成功标志</h3>
+                <ul style="color: #166534;">
+                    <li>音频播放完成后，右侧自动显示四个视频选项</li>
+                    <li>选项以 2x2 网格布局正确显示</li>
+                    <li>每个选项包含视频预览和标题</li>
+                    <li>点击选项有正确的视觉反馈</li>
+                    <li>选择后显示正确/错误的结果反馈</li>
+                    <li>"跳过音频"按钮可以立即显示选项</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function testOptionsDisplay() {
+            const message = `
+测试选项显示逻辑：
+
+1. 打开浏览器开发者工具（F12）
+2. 访问 vTPR 页面
+3. 在控制台中查看是否有 "Audio completed, switching to selecting step" 日志
+4. 检查页面元素，确认选项区域的 HTML 结构
+5. 验证 currentStep 状态的变化
+
+如果选项仍然不显示，请检查：
+- 音频文件是否正确加载
+- onEnded 回调是否被触发
+- currentStep 状态是否正确切换
+- CSS 样式是否隐藏了选项元素
+            `;
+            alert(message);
+        }
+
+        // 页面加载完成后的状态检查
+        window.addEventListener('load', function() {
+            console.log('vTPR 选项显示问题修复验证页面已加载');
+            console.log('Web 服务器运行在: http://localhost:3002');
+            console.log('请按照验证步骤测试修复结果');
+        });
+    </script>
+</body>
+</html>

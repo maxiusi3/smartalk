@@ -1,0 +1,78 @@
+{
+  "name": "smartalk-mvp",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SmarTalk MVP - First Deadly Contact Experience",
+  "workspaces": [
+    "backend",
+    "mobile",
+    "web",
+    "shared"
+  ],
+  "scripts": {
+    "dev": "./scripts/dev-start.sh all",
+    "dev:backend": "./scripts/dev-start.sh backend",
+    "dev:mobile": "./scripts/dev-start.sh mobile",
+    "dev:web": "./scripts/dev-start.sh web",
+    "build": "./scripts/build.sh all",
+    "build:backend": "./scripts/build.sh backend",
+    "build:mobile": "./scripts/build.sh mobile",
+    "build:web": "./scripts/build.sh web",
+    "build:clean": "./scripts/build.sh clean",
+    "test": "./scripts/build.sh test",
+    "test:all": "./scripts/run-all-tests.sh",
+    "test:backend": "cd backend && npm test",
+    "test:mobile": "cd mobile && npm test",
+    "test:web": "cd web && npm test",
+    "test:e2e": "cd mobile && npm test -- --testPathPattern=e2e",
+    "test:performance": "node scripts/performance-test.js",
+    "test:coverage": "jest --coverage",
+    "test:watch": "jest --watch",
+    "test:shared": "cd shared && npm test",
+    "lint": "./scripts/build.sh lint",
+    "lint:backend": "cd backend && npm run lint",
+    "lint:mobile": "cd mobile && npm run lint",
+    "lint:web": "cd web && npm run lint",
+    "lint:fix": "npm run lint:backend -- --fix && npm run lint:mobile -- --fix && npm run lint:web -- --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "setup": "./scripts/dev-start.sh install",
+    "setup:backend": "cd backend && npm install",
+    "setup:mobile": "cd mobile && npm install",
+    "setup:web": "cd web && npm install",
+    "check": "./scripts/dev-start.sh check",
+    "ci": "npm run lint && npm run test:coverage && npm run build",
+    "db:migrate": "cd backend && npm run db:migrate",
+    "db:seed": "cd backend && npm run db:seed",
+    "db:studio": "cd backend && npm run db:studio",
+    "type-check": "npm run type-check --workspaces --if-present",
+    "clean": "npm run clean --workspaces --if-present && rimraf node_modules",
+    "analyze:deps": "madge --circular --extensions ts,tsx,js,jsx .",
+    "security:audit": "npm audit --workspaces"
+  },
+  "dependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.9.0",
+    "@types/jest": "^29.5.8",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.1",
+    "typescript": "^5.2.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}

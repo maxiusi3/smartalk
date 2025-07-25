@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmarTalk - Theater Mode</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .phone-mockup {
+            width: 375px;
+            height: 812px;
+            background: #000;
+            border-radius: 40px;
+            padding: 8px;
+            position: relative;
+        }
+        .screen {
+            width: 100%;
+            height: 100%;
+            background: #000;
+            border-radius: 32px;
+            overflow: hidden;
+            position: relative;
+        }
+        .video-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .video-placeholder {
+            width: 100%;
+            height: 60%;
+            background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .controls-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, transparent 20%, transparent 80%, rgba(0,0,0,0.7) 100%);
+            opacity: 1;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+        .controls-overlay.hidden {
+            opacity: 0;
+        }
+        .top-controls {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            pointer-events: auto;
+        }
+        .bottom-controls {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            pointer-events: auto;
+        }
+        .control-button {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+        .control-button:hover {
+            background: rgba(0, 0, 0, 0.8);
+            transform: scale(1.1);
+        }
+        .play-button {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #1f2937;
+            font-size: 32px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+        }
+        .play-button:hover {
+            transform: scale(1.1);
+            background: white;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 35%;
+            border-radius: 2px;
+            transition: width 0.3s ease;
+        }
+        .theater-mode-badge {
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(10px);
+            padding: 8px 16px;
+            border-radius: 20px;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .magic-moment-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: white;
+            z-index: 10;
+        }
+        .soft-shadow {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .fade-in {
+            animation: fadeIn 1s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+    </style>
+</head>
+<body class="bg-black flex items-center justify-center min-h-screen p-4">
+    <div class="phone-mockup soft-shadow">
+        <div class="screen">
+            <!-- Video Container -->
+            <div class="video-container" onclick="toggleControls()">
+                <!-- Video Placeholder -->
+                <div class="video-placeholder">
+                    <!-- Sample video background -->
+                    <img src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=400&h=300&fit=crop" 
+                         alt="Coffee Shop Scene" 
+                         class="w-full h-full object-cover">
+                    
+                    <!-- Magic Moment Overlay -->
+                    <div class="magic-moment-text fade-in">
+                        <div class="mb-4">
+                            <div class="text-4xl mb-2">✨</div>
+                            <div class="text-lg font-semibold mb-2">魔法时刻</div>
+                            <div class="text-sm opacity-80">无字幕观看体验</div>
+                        </div>
+                    </div>
+
+                    <!-- Play Button -->
+                    <div class="play-button pulse" onclick="playVideo(event)">
+                        <i class="fas fa-play" style="margin-left: 4px;"></i>
+                    </div>
+                </div>
+
+                <!-- Controls Overlay -->
+                <div class="controls-overlay" id="controls">
+                    <!-- Top Controls -->
+                    <div class="top-controls">
+                        <button class="control-button" onclick="closeTheater(event)">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        <div class="theater-mode-badge">
+                            剧场模式
+                        </div>
+                        <button class="control-button" onclick="toggleFullscreen(event)">
+                            <i class="fas fa-expand"></i>
+                        </button>
+                    </div>
+
+                    <!-- Bottom Controls -->
+                    <div class="bottom-controls">
+                        <!-- Progress Bar -->
+                        <div class="progress-bar mb-4">
+                            <div class="progress-fill" id="progress"></div>
+                        </div>
+                        
+                        <!-- Control Buttons -->
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-4">
+                                <button class="control-button" onclick="rewind(event)">
+                                    <i class="fas fa-backward"></i>
+                                </button>
+                                <button class="control-button" onclick="playPause(event)" id="playPauseBtn">
+                                    <i class="fas fa-pause"></i>
+                                </button>
+                                <button class="control-button" onclick="forward(event)">
+                                    <i class="fas fa-forward"></i>
+                                </button>
+                            </div>
+                            
+                            <div class="flex items-center space-x-4">
+                                <button class="control-button" onclick="toggleSubtitles(event)">
+                                    <i class="fas fa-closed-captioning"></i>
+                                </button>
+                                <button class="control-button" onclick="toggleVolume(event)">
+                                    <i class="fas fa-volume-up"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Time Display -->
+                        <div class="flex justify-between items-center mt-2 text-white text-sm">
+                            <span>01:23</span>
+                            <span>03:45</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isPlaying = false;
+        let controlsVisible = true;
+        let hideControlsTimer;
+
+        function toggleControls() {
+            const controls = document.getElementById('controls');
+            if (controlsVisible) {
+                controls.classList.add('hidden');
+                controlsVisible = false;
+            } else {
+                controls.classList.remove('hidden');
+                controlsVisible = true;
+                autoHideControls();
+            }
+        }
+
+        function autoHideControls() {
+            clearTimeout(hideControlsTimer);
+            hideControlsTimer = setTimeout(() => {
+                if (isPlaying) {
+                    document.getElementById('controls').classList.add('hidden');
+                    controlsVisible = false;
+                }
+            }, 3000);
+        }
+
+        function playVideo(event) {
+            event.stopPropagation();
+            const playButton = document.querySelector('.play-button');
+            const magicText = document.querySelector('.magic-moment-text');
+            
+            // Hide play button and magic moment text
+            playButton.style.display = 'none';
+            magicText.style.display = 'none';
+            
+            // Start playing
+            isPlaying = true;
+            document.getElementById('playPauseBtn').innerHTML = '<i class="fas fa-pause"></i>';
+            
+            // Start progress simulation
+            simulateProgress();
+            
+            // Auto hide controls
+            autoHideControls();
+        }
+
+        function playPause(event) {
+            event.stopPropagation();
+            const btn = document.getElementById('playPauseBtn');
+            
+            if (isPlaying) {
+                btn.innerHTML = '<i class="fas fa-play"></i>';
+                isPlaying = false;
+            } else {
+                btn.innerHTML = '<i class="fas fa-pause"></i>';
+                isPlaying = true;
+                autoHideControls();
+            }
+        }
+
+        function simulateProgress() {
+            const progressBar = document.getElementById('progress');
+            let progress = 35;
+            
+            const interval = setInterval(() => {
+                if (isPlaying && progress < 100) {
+                    progress += 0.5;
+                    progressBar.style.width = progress + '%';
+                } else if (progress >= 100) {
+                    clearInterval(interval);
+                    // Video completed - show achievement screen
+                    setTimeout(() => {
+                        showCompletionMessage();
+                    }, 1000);
+                }
+            }, 200);
+        }
+
+        function showCompletionMessage() {
+            const overlay = document.createElement('div');
+            overlay.className = 'fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50';
+            overlay.innerHTML = `
+                <div class="text-center text-white p-8">
+                    <div class="text-6xl mb-4">🎉</div>
+                    <div class="text-2xl font-bold mb-4">恭喜！</div>
+                    <div class="text-lg mb-6">你刚刚完成了无字幕观看体验</div>
+                    <button onclick="goToAchievement()" class="bg-gradient-to-r from-blue-500 to-purple-600 px-8 py-3 rounded-full text-white font-semibold">
+                        查看成就
+                    </button>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+        }
+
+        function goToAchievement() {
+            alert('跳转到成就页面');
+        }
+
+        function closeTheater(event) {
+            event.stopPropagation();
+            alert('退出剧场模式');
+        }
+
+        function toggleFullscreen(event) {
+            event.stopPropagation();
+            // Fullscreen logic would go here
+        }
+
+        function rewind(event) {
+            event.stopPropagation();
+            // Rewind logic
+        }
+
+        function forward(event) {
+            event.stopPropagation();
+            // Forward logic
+        }
+
+        function toggleSubtitles(event) {
+            event.stopPropagation();
+            const btn = event.target.closest('button');
+            btn.classList.toggle('opacity-50');
+        }
+
+        function toggleVolume(event) {
+            event.stopPropagation();
+            const icon = event.target.closest('button').querySelector('i');
+            if (icon.classList.contains('fa-volume-up')) {
+                icon.className = 'fas fa-volume-mute';
+            } else {
+                icon.className = 'fas fa-volume-up';
+            }
+        }
+
+        // Initialize auto-hide controls
+        autoHideControls();
+    </script>
+</body>
+</html>

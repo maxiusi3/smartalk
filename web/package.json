@@ -1,0 +1,59 @@
+{
+  "name": "smartalk-web",
+  "version": "1.0.0",
+  "description": "开芯说 - 神经沉浸法语言学习平台 Web版本",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "lint:fix": "next lint --fix",
+    "type-check": "tsc --noEmit",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "analyze": "cross-env ANALYZE=true next build",
+    "export": "next export",
+    "deploy:dev": "./scripts/deploy.sh development",
+    "deploy:staging": "./scripts/deploy.sh staging",
+    "deploy:prod": "./scripts/deploy.sh production",
+    "pm2:start": "pm2 start ecosystem.config.js",
+    "pm2:stop": "pm2 stop smartalk-web",
+    "pm2:restart": "pm2 restart smartalk-web",
+    "pm2:logs": "pm2 logs smartalk-web",
+    "clean": "rm -rf .next out dist",
+    "postinstall": "husky install || true"
+  },
+  "keywords": [
+    "language-learning",
+    "vtpr",
+    "nextjs",
+    "typescript",
+    "tailwindcss",
+    "education"
+  ],
+  "author": "开芯说团队",
+  "license": "MIT",
+  "dependencies": {
+    "@playwright/test": "^1.54.1",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.23.7",
+    "lucide-react": "^0.525.0",
+    "next": "15.4.3",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "zustand": "^5.0.6"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "15.4.3",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}

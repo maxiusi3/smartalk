@@ -1,0 +1,149 @@
+# Prometheus Alert Rules for SmarTalk
+groups:
+  - name: smartalk_critical
+    rules:
+      # Service Down Alerts
+      - alert: BackendServiceDown
+        expr: up{job="smartalk-backend"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "SmarTalk Backend service is down"
+          description: "Backend service has been down for more than 1 minute"
+
+      - alert: DatabaseDown
+        expr: up{job="postgres"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "PostgreSQL database is down"
+          description: "Database has been unreachable for more than 2 minutes"
+
+      # Performance Alerts
+      - alert: HighResponseTime
+        expr: http_request_duration_seconds{quantile="0.95"} > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High API response time"
+          description: "95th percentile response time is {{ $value }}s"
+
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.05
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is {{ $value | humanizePercentage }}"
+
+      # User Activation Alerts
+      - alert: LowActivationRate
+        expr: rate(user_activated_total[1h]) < 0.4
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "User activation rate below target"
+          description: "Activation rate is {{ $value | humanizePercentage }}, target is 40%"
+
+      - alert: NoNewUsers
+        expr: increase(user_created_total[30m]) == 0
+        for: 30m
+        labels:
+          severity: warning
+        annotations:
+          summary: "No new users in 30 minutes"
+          description: "User acquisition may be impacted"
+
+  - name: smartalk_infrastructure
+    rules:
+      # Resource Usage Alerts
+      - alert: HighCPUUsage
+        expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage"
+          description: "CPU usage is {{ $value }}% on {{ $labels.instance }}"
+
+      - alert: HighMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage"
+          description: "Memory usage is {{ $value }}% on {{ $labels.instance }}"
+
+      - alert: LowDiskSpace
+        expr: (1 - (node_filesystem_avail_bytes / node_filesystem_size_bytes)) * 100 > 90
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Low disk space"
+          description: "Disk usage is {{ $value }}% on {{ $labels.instance }}"
+
+      # Database Performance
+      - alert: DatabaseSlowQueries
+        expr: pg_stat_activity_max_tx_duration > 300
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Slow database queries detected"
+          description: "Longest transaction duration is {{ $value }}s"
+
+      - alert: DatabaseConnectionsHigh
+        expr: pg_stat_database_numbackends / pg_settings_max_connections > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High database connection usage"
+          description: "Database connections at {{ $value | humanizePercentage }} of maximum"
+
+  - name: smartalk_business
+    rules:
+      # Content Delivery Alerts
+      - alert: VideoLoadingIssues
+        expr: rate(video_load_errors_total[5m]) > 0.1
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Video loading errors detected"
+          description: "Video load error rate is {{ $value | humanizePercentage }}"
+
+      - alert: CDNHighLatency
+        expr: cdn_response_time_seconds{quantile="0.95"} > 3
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "CDN response time high"
+          description: "95th percentile CDN response time is {{ $value }}s"
+
+      # User Experience Alerts
+      - alert: HighBounceRate
+        expr: rate(user_bounced_total[1h]) / rate(user_started_total[1h]) > 0.7
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High user bounce rate"
+          description: "Bounce rate is {{ $value | humanizePercentage }}"
+
+      - alert: NegativeFeedbackSpike
+        expr: rate(user_feedback_negative_total[10m]) > rate(user_feedback_positive_total[10m])
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Spike in negative user feedback"
+          description: "Negative feedback exceeding positive feedback"

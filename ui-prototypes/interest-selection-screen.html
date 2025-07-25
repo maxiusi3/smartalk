@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmarTalk - Interest Selection</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .phone-mockup {
+            width: 375px;
+            height: 812px;
+            background: #000;
+            border-radius: 40px;
+            padding: 8px;
+            position: relative;
+        }
+        .screen {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border-radius: 32px;
+            overflow: hidden;
+            position: relative;
+        }
+        .status-bar {
+            height: 44px;
+            background: transparent;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #1a202c;
+        }
+        .interest-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .interest-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15);
+        }
+        .interest-card.selected {
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+        .card-gradient-travel {
+            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+        }
+        .card-gradient-movies {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card-gradient-workplace {
+            background: linear-gradient(135deg, #1a237e 0%, #3949ab 100%);
+        }
+        .card-overlay {
+            background: linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.6) 100%);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(102, 126, 234, 0.4);
+        }
+        .btn-primary:disabled {
+            background: #e2e8f0;
+            color: #9ca3af;
+            transform: none;
+            box-shadow: none;
+        }
+        .checkmark {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 24px;
+            height: 24px;
+            background: #10b981;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            opacity: 0;
+            transform: scale(0);
+            transition: all 0.3s ease;
+        }
+        .interest-card.selected .checkmark {
+            opacity: 1;
+            transform: scale(1);
+        }
+        .soft-shadow {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+    <div class="phone-mockup soft-shadow">
+        <div class="screen">
+            <!-- Status Bar -->
+            <div class="status-bar">
+                <span>9:41</span>
+                <div class="flex items-center space-x-1">
+                    <i class="fas fa-signal text-xs"></i>
+                    <i class="fas fa-wifi text-xs"></i>
+                    <i class="fas fa-battery-three-quarters text-xs"></i>
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="flex flex-col h-full pt-4 pb-8">
+                <!-- Header -->
+                <div class="px-6 mb-8 text-center">
+                    <h1 class="text-2xl font-bold text-gray-900 mb-3">
+                        哪种故事更能点燃你？
+                    </h1>
+                    <p class="text-gray-600 text-sm leading-relaxed">
+                        选择你最感兴趣的场景，我们将为你量身定制专属的故事体验
+                    </p>
+                </div>
+
+                <!-- Interest Cards -->
+                <div class="flex-1 px-6 space-y-4">
+                    <!-- Travel Card -->
+                    <div class="interest-card rounded-2xl h-32 cursor-pointer" onclick="selectCard(this)">
+                        <div class="card-gradient-travel h-full rounded-2xl relative">
+                            <div class="card-overlay absolute inset-0 rounded-2xl"></div>
+                            <div class="relative h-full p-6 flex items-end">
+                                <div class="text-white">
+                                    <div class="text-2xl mb-2">✈️</div>
+                                    <h3 class="text-lg font-bold mb-1">像当地人一样旅行</h3>
+                                    <p class="text-sm opacity-90">学会在旅行中自信地与当地人交流</p>
+                                </div>
+                            </div>
+                            <div class="checkmark">
+                                <i class="fas fa-check"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Movies Card -->
+                    <div class="interest-card rounded-2xl h-32 cursor-pointer selected" onclick="selectCard(this)">
+                        <div class="card-gradient-movies h-full rounded-2xl relative">
+                            <div class="card-overlay absolute inset-0 rounded-2xl"></div>
+                            <div class="relative h-full p-6 flex items-end">
+                                <div class="text-white">
+                                    <div class="text-2xl mb-2">🎬</div>
+                                    <h3 class="text-lg font-bold mb-1">无字幕刷原声大片</h3>
+                                    <p class="text-sm opacity-90">享受不依赖字幕观看英文电影的乐趣</p>
+                                </div>
+                            </div>
+                            <div class="checkmark">
+                                <i class="fas fa-check"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Workplace Card -->
+                    <div class="interest-card rounded-2xl h-32 cursor-pointer" onclick="selectCard(this)">
+                        <div class="card-gradient-workplace h-full rounded-2xl relative">
+                            <div class="card-overlay absolute inset-0 rounded-2xl"></div>
+                            <div class="relative h-full p-6 flex items-end">
+                                <div class="text-white">
+                                    <div class="text-2xl mb-2">💼</div>
+                                    <h3 class="text-lg font-bold mb-1">在职场自信沟通</h3>
+                                    <p class="text-sm opacity-90">掌握职场英语沟通技巧</p>
+                                </div>
+                            </div>
+                            <div class="checkmark">
+                                <i class="fas fa-check"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bottom Button -->
+                <div class="px-6 mt-8">
+                    <button class="btn-primary w-full py-4 rounded-2xl text-white font-semibold text-lg soft-shadow">
+                        开始学习之旅
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function selectCard(card) {
+            // Remove selected class from all cards
+            document.querySelectorAll('.interest-card').forEach(c => c.classList.remove('selected'));
+            // Add selected class to clicked card
+            card.classList.add('selected');
+        }
+    </script>
+</body>
+</html>

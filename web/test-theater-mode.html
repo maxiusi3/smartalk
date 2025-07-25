@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>剧场模式测试</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .test-button {
+            display: inline-block;
+            padding: 12px 24px;
+            margin: 10px;
+            background: #3b82f6;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+        .test-button:hover {
+            background: #2563eb;
+        }
+        .emergency-button {
+            background: #ef4444;
+        }
+        .emergency-button:hover {
+            background: #dc2626;
+        }
+        .test-section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+        }
+        .test-steps {
+            list-style: none;
+            padding: 0;
+        }
+        .test-steps li {
+            padding: 8px 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        .test-steps li:last-child {
+            border-bottom: none;
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .status.pass {
+            background: #dcfce7;
+            color: #166534;
+        }
+        .status.fail {
+            background: #fef2f2;
+            color: #991b1b;
+        }
+        .status.pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🎭 剧场模式退出流程测试</h1>
+        
+        <div class="test-section">
+            <h2>测试链接</h2>
+            <a href="http://localhost:3000/theater-mode/travel" class="test-button" target="_blank">
+                🎬 进入旅行剧场模式
+            </a>
+            <a href="http://localhost:3000/theater-mode/movie" class="test-button" target="_blank">
+                🎭 进入电影剧场模式
+            </a>
+            <a href="http://localhost:3000/theater-mode/workplace" class="test-button" target="_blank">
+                💼 进入职场剧场模式
+            </a>
+        </div>
+
+        <div class="test-section">
+            <h2>紧急退出测试</h2>
+            <a href="http://localhost:3000/learning" class="test-button emergency-button" target="_blank">
+                🚨 直接返回学习页面
+            </a>
+            <a href="http://localhost:3000/achievement/travel" class="test-button" target="_blank">
+                🏆 直接访问成就页面
+            </a>
+        </div>
+
+        <div class="test-section">
+            <h2>测试步骤</h2>
+            <ol class="test-steps">
+                <li>
+                    <strong>步骤 1:</strong> 点击上方链接进入剧场模式
+                    <span class="status pending">待测试</span>
+                </li>
+                <li>
+                    <strong>步骤 2:</strong> 验证页面自动进入全屏模式
+                    <span class="status pending">待测试</span>
+                </li>
+                <li>
+                    <strong>步骤 3:</strong> 测试 ESC 键退出全屏
+                    <span class="status pending">待测试</span>
+                </li>
+                <li>
+                    <strong>步骤 4:</strong> 测试右上角 X 按钮退出
+                    <span class="status pending">待测试</span>
+                </li>
+                <li>
+                    <strong>步骤 5:</strong> 验证退出确认弹窗显示
+                    <span class="status pending">待测试</span>
+                </li>
+                <li>
+                    <strong>步骤 6:</strong> 点击"确定退出"按钮
+                    <span class="status pending">待测试</span>
+                </li>
+                <li>
+                    <strong>步骤 7:</strong> 验证成功跳转到成就页面
+                    <span class="status pending">待测试</span>
+                </li>
+                <li>
+                    <strong>步骤 8:</strong> 测试紧急退出按钮（左上角小房子图标）
+                    <span class="status pending">待测试</span>
+                </li>
+            </ol>
+        </div>
+
+        <div class="test-section">
+            <h2>已修复的问题</h2>
+            <ul>
+                <li>✅ 修复了 ESC 键处理逻辑冲突</li>
+                <li>✅ 改进了全屏状态管理</li>
+                <li>✅ 添加了更可靠的退出确认流程</li>
+                <li>✅ 增加了紧急退出按钮</li>
+                <li>✅ 改进了事件监听器清理</li>
+                <li>✅ 添加了视频完成提示界面</li>
+                <li>✅ 增强了错误处理和调试信息</li>
+            </ul>
+        </div>
+
+        <div class="test-section">
+            <h2>键盘快捷键</h2>
+            <ul>
+                <li><strong>空格键:</strong> 播放/暂停视频</li>
+                <li><strong>ESC 键:</strong> 退出全屏或显示退出确认</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // 简单的测试状态管理
+        function updateTestStatus(step, status) {
+            const steps = document.querySelectorAll('.test-steps li');
+            if (steps[step - 1]) {
+                const statusEl = steps[step - 1].querySelector('.status');
+                statusEl.className = `status ${status}`;
+                statusEl.textContent = status === 'pass' ? '通过' : status === 'fail' ? '失败' : '待测试';
+            }
+        }
+
+        // 监听来自剧场模式页面的消息
+        window.addEventListener('message', function(event) {
+            if (event.origin !== 'http://localhost:3000') return;
+            
+            console.log('收到剧场模式消息:', event.data);
+            
+            switch (event.data.type) {
+                case 'theater_entered':
+                    updateTestStatus(1, 'pass');
+                    break;
+                case 'fullscreen_entered':
+                    updateTestStatus(2, 'pass');
+                    break;
+                case 'exit_requested':
+                    updateTestStatus(4, 'pass');
+                    break;
+                case 'exit_confirmed':
+                    updateTestStatus(6, 'pass');
+                    break;
+                case 'achievement_reached':
+                    updateTestStatus(7, 'pass');
+                    break;
+            }
+        });
+    </script>
+</body>
+</html>

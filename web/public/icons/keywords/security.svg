@@ -1,0 +1,5 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="32" cy="32" r="30" fill="#10B981" stroke="#059669" stroke-width="2"/>
+  <path d="M32 16L40 20V32C40 38 36 42 32 44C28 42 24 38 24 32V20L32 16Z" fill="white"/>
+  <text x="32" y="52" text-anchor="middle" fill="white" font-size="8" font-family="Arial">Security</text>
+</svg>

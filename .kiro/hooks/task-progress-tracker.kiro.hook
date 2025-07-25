@@ -1,0 +1,21 @@
+{
+  "enabled": true,
+  "name": "Task Progress Tracker",
+  "description": "Monitors task completion, evaluates next suitable subtasks, and provides task summaries when parent tasks are completed",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "**/*.md",
+      "**/*.json",
+      "**/scripts/*.sh",
+      "**/scripts/*.ts",
+      "**/__tests__/**/*.test.ts",
+      "**/__tests__/**/*.test.tsx"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "每完成tasks中的一个子任务，重新评估并找出下一个最合适的子任务，如果没有完成全部任务则继续下一个子任务；每完成父任务下的所有子任务，核对父任务是否完成并更新状态，做任务总结。\n\n请分析当前文件变更，确定是否有子任务已完成。如果有：\n1. 评估当前项目状态和剩余任务\n2. 识别下一个最合适的子任务\n3. 如果父任务的所有子任务都已完成，核对父任务完成状态并提供任务总结\n4. 提供具体的下一步行动建议"
+  }
+}

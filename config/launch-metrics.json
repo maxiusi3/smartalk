@@ -1,0 +1,98 @@
+{
+  "northStarMetric": {
+    "name": "User Activation Rate",
+    "definition": "Percentage of new users who complete the subtitle-free video viewing (Magic Moment)",
+    "target": 40,
+    "unit": "percentage",
+    "calculation": "(users_completed_magic_moment / total_new_users) * 100",
+    "trackingEvents": [
+      "user_started_onboarding",
+      "user_selected_interest", 
+      "user_watched_preview_video",
+      "user_started_vtpr_learning",
+      "user_completed_all_clues",
+      "user_watched_magic_moment",
+      "user_provided_feedback"
+    ]
+  },
+  "retentionMetrics": {
+    "d1_retention": {
+      "name": "Day 1 Retention Rate",
+      "target": 50,
+      "unit": "percentage",
+      "definition": "Percentage of activated users who return on day 2"
+    },
+    "d7_retention": {
+      "name": "Day 7 Retention Rate", 
+      "target": 30,
+      "unit": "percentage",
+      "definition": "Percentage of activated users who return within 7 days"
+    }
+  },
+  "conversionFunnel": {
+    "stages": [
+      {
+        "name": "App Launch",
+        "event": "app_launched",
+        "target_conversion": 100
+      },
+      {
+        "name": "Onboarding Started",
+        "event": "onboarding_started",
+        "target_conversion": 90
+      },
+      {
+        "name": "Interest Selected",
+        "event": "interest_selected",
+        "target_conversion": 85
+      },
+      {
+        "name": "Preview Watched",
+        "event": "preview_video_completed",
+        "target_conversion": 80
+      },
+      {
+        "name": "Learning Started",
+        "event": "vtpr_learning_started",
+        "target_conversion": 75
+      },
+      {
+        "name": "First Clue Completed",
+        "event": "first_clue_completed",
+        "target_conversion": 70
+      },
+      {
+        "name": "All Clues Completed",
+        "event": "all_clues_completed",
+        "target_conversion": 60
+      },
+      {
+        "name": "Magic Moment (Activation)",
+        "event": "magic_moment_completed",
+        "target_conversion": 40
+      }
+    ]
+  },
+  "qualityMetrics": {
+    "user_satisfaction": {
+      "feedback_options": [
+        "😍 完全听懂了！",
+        "🤩 比想象的容易！", 
+        "😊 抓住了主线！",
+        "🔥 想学更多！"
+      ],
+      "target_positive_rate": 80
+    },
+    "learning_effectiveness": {
+      "avg_attempts_per_clue": {
+        "target": 2.5,
+        "definition": "Average number of attempts needed to complete each story clue"
+      },
+      "completion_time": {
+        "target": 1800,
+        "unit": "seconds",
+        "definition": "Target time for complete first session (30 minutes)"
+      }
+    }
+  }
+}

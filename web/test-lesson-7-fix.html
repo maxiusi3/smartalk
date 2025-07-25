@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lesson-7 路由修复验证</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .test-button {
+            display: inline-block;
+            padding: 12px 24px;
+            margin: 10px;
+            background: #3b82f6;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+        .test-button:hover {
+            background: #2563eb;
+        }
+        .fixed-button {
+            background: #10b981;
+        }
+        .fixed-button:hover {
+            background: #059669;
+        }
+        .problem-button {
+            background: #ef4444;
+        }
+        .problem-button:hover {
+            background: #dc2626;
+        }
+        .test-section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .status.fixed {
+            background: #dcfce7;
+            color: #166534;
+        }
+        .status.problem {
+            background: #fef2f2;
+            color: #991b1b;
+        }
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .comparison-item {
+            padding: 15px;
+            border-radius: 8px;
+        }
+        .before {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+        }
+        .after {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🔧 Lesson-7 路由修复验证</h1>
+        
+        <div class="test-section">
+            <h2>问题描述</h2>
+            <p>用户访问 <code>http://localhost:3000/learning/video/lesson-7</code> 时，页面显示错误的内容（显示"办理登机手续"相关内容，而不是正确的音画匹配训练功能）。</p>
+        </div>
+
+        <div class="test-section">
+            <h2>修复前后对比</h2>
+            <div class="comparison">
+                <div class="comparison-item before">
+                    <h3>🚫 修复前</h3>
+                    <ul>
+                        <li>lesson-7 类型设置为 <code>video</code></li>
+                        <li>跳转到 <code>/learning/video/lesson-7</code></li>
+                        <li>显示错误内容："办理登机手续"</li>
+                        <li>不是音画匹配训练功能</li>
+                    </ul>
+                </div>
+                <div class="comparison-item after">
+                    <h3>✅ 修复后</h3>
+                    <ul>
+                        <li>lesson-7 类型改为 <code>vtpr</code></li>
+                        <li>跳转到 <code>/learning/vtpr</code></li>
+                        <li>显示正确内容："音画匹配训练"</li>
+                        <li>收集魔法钥匙功能</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>测试链接</h2>
+            <p><strong>问题链接（应该重定向到正确页面）：</strong></p>
+            <a href="http://localhost:3000/learning/video/lesson-7" class="test-button problem-button" target="_blank">
+                🚫 原问题链接 (lesson-7 video)
+            </a>
+            
+            <p><strong>修复后的正确链接：</strong></p>
+            <a href="http://localhost:3000/learning/vtpr" class="test-button fixed-button" target="_blank">
+                ✅ 音画匹配训练页面 (vtpr)
+            </a>
+            
+            <p><strong>学习地图（验证 lesson-7 跳转）：</strong></p>
+            <a href="http://localhost:3000/learning" class="test-button" target="_blank">
+                🗺️ 学习地图页面
+            </a>
+        </div>
+
+        <div class="test-section">
+            <h2>修复内容详情</h2>
+            <h3>1. 学习地图配置修复</h3>
+            <p>文件：<code>web/src/app/learning/page.tsx</code></p>
+            <pre style="background: #f8f9fa; padding: 10px; border-radius: 4px; overflow-x: auto;">
+// 修复前
+{ id: 'lesson-7', title: '行李提取', type: 'video', ... }
+
+// 修复后  
+{ id: 'lesson-7', title: '行李提取', type: 'vtpr', ... }</pre>
+
+            <h3>2. vTPR 页面内容更新</h3>
+            <p>文件：<code>web/src/app/learning/vtpr/page.tsx</code></p>
+            <ul>
+                <li>✅ 更新课程 ID 为 lesson-7</li>
+                <li>✅ 更新标题为"音画匹配训练：收集魔法钥匙"</li>
+                <li>✅ 更新音频内容为咖啡店场景</li>
+                <li>✅ 更新视频选项为旅行相关场景</li>
+                <li>✅ 添加魔法钥匙收集目标提示</li>
+            </ul>
+        </div>
+
+        <div class="test-section">
+            <h2>验证步骤</h2>
+            <ol>
+                <li>
+                    <strong>步骤 1:</strong> 点击学习地图链接，进入学习页面
+                    <span class="status fixed">待验证</span>
+                </li>
+                <li>
+                    <strong>步骤 2:</strong> 找到 lesson-7（行李提取），点击进入
+                    <span class="status fixed">待验证</span>
+                </li>
+                <li>
+                    <strong>步骤 3:</strong> 验证页面跳转到 vtpr 页面（而不是 video 页面）
+                    <span class="status fixed">待验证</span>
+                </li>
+                <li>
+                    <strong>步骤 4:</strong> 验证页面显示"音画匹配训练：收集魔法钥匙"
+                    <span class="status fixed">待验证</span>
+                </li>
+                <li>
+                    <strong>步骤 5:</strong> 验证音频内容为咖啡店场景
+                    <span class="status fixed">待验证</span>
+                </li>
+                <li>
+                    <strong>步骤 6:</strong> 验证视频选项包含旅行相关场景
+                    <span class="status fixed">待验证</span>
+                </li>
+            </ol>
+        </div>
+
+        <div class="test-section">
+            <h2>技术细节</h2>
+            <h3>路由机制说明</h3>
+            <ul>
+                <li><strong>video 类型:</strong> 跳转到 <code>/learning/video/[lessonId]</code></li>
+                <li><strong>vtpr 类型:</strong> 跳转到 <code>/learning/vtpr</code></li>
+                <li><strong>quiz 类型:</strong> 跳转到 <code>/learning/quiz</code></li>
+                <li><strong>story 类型:</strong> 跳转到 <code>/learning/story</code></li>
+            </ul>
+            
+            <h3>修复原理</h3>
+            <p>通过将 lesson-7 的类型从 <code>video</code> 改为 <code>vtpr</code>，确保用户点击时跳转到正确的音画匹配训练页面，而不是错误的视频播放页面。</p>
+        </div>
+
+        <div class="test-section">
+            <h2>预期结果</h2>
+            <div style="background: #f0fdf4; padding: 15px; border-radius: 8px; border: 1px solid #bbf7d0;">
+                <h3 style="color: #166534; margin-top: 0;">✅ 修复成功标志</h3>
+                <ul style="color: #166534;">
+                    <li>访问 lesson-7 时显示音画匹配训练界面</li>
+                    <li>页面标题包含"收集魔法钥匙"</li>
+                    <li>音频内容为咖啡店场景</li>
+                    <li>视频选项为旅行相关场景</li>
+                    <li>不再显示"办理登机手续"内容</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 简单的状态检查
+        function checkPageStatus() {
+            const statusElements = document.querySelectorAll('.status');
+            statusElements.forEach(el => {
+                if (el.textContent === '待验证') {
+                    el.style.background = '#fef3c7';
+                    el.style.color = '#92400e';
+                }
+            });
+        }
+
+        checkPageStatus();
+
+        // 监听页面加载完成
+        window.addEventListener('load', function() {
+            console.log('Lesson-7 修复验证页面已加载');
+            console.log('请按照验证步骤测试修复结果');
+        });
+    </script>
+</body>
+</html>

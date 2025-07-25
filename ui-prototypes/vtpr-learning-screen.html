@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmarTalk - vTPR Learning</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .phone-mockup {
+            width: 375px;
+            height: 812px;
+            background: #000;
+            border-radius: 40px;
+            padding: 8px;
+            position: relative;
+        }
+        .screen {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border-radius: 32px;
+            overflow: hidden;
+            position: relative;
+        }
+        .status-bar {
+            height: 44px;
+            background: transparent;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #1a202c;
+        }
+        .floating-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .progress-bar {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            height: 6px;
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+        .audio-player {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .video-option {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .video-option:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15);
+        }
+        .video-option.selected {
+            border-color: #10b981;
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+        }
+        .video-option.correct {
+            border-color: #10b981;
+            background: rgba(16, 185, 129, 0.1);
+        }
+        .video-option.incorrect {
+            border-color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+        }
+        .play-button {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 48px;
+            height: 48px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 16px;
+        }
+        .keyword-display {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .soft-shadow {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+    <div class="phone-mockup soft-shadow">
+        <div class="screen">
+            <!-- Status Bar -->
+            <div class="status-bar">
+                <span>9:41</span>
+                <div class="flex items-center space-x-1">
+                    <i class="fas fa-signal text-xs"></i>
+                    <i class="fas fa-wifi text-xs"></i>
+                    <i class="fas fa-battery-three-quarters text-xs"></i>
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="flex flex-col h-full pt-4 pb-8">
+                <!-- Header -->
+                <div class="px-6 mb-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <button class="w-10 h-10 rounded-full bg-white soft-shadow flex items-center justify-center">
+                            <i class="fas fa-arrow-left text-gray-600"></i>
+                        </button>
+                        <div class="text-center">
+                            <div class="text-sm text-gray-600 mb-1">故事线索发现进度</div>
+                            <div class="text-lg font-bold text-gray-900">7 / 15</div>
+                        </div>
+                        <div class="w-10"></div>
+                    </div>
+                    
+                    <!-- Progress Bar -->
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="progress-bar" style="width: 47%"></div>
+                    </div>
+                </div>
+
+                <!-- Audio Player Section -->
+                <div class="px-6 mb-8">
+                    <div class="floating-card rounded-2xl p-6 soft-shadow">
+                        <div class="text-center mb-4">
+                            <div class="text-sm text-gray-600 mb-2">仔细听这个声音线索</div>
+                            <div class="keyword-display text-3xl font-bold mb-4">Coffee</div>
+                        </div>
+                        
+                        <div class="audio-player rounded-2xl p-4 flex items-center justify-center">
+                            <button class="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-white text-xl pulse">
+                                <i class="fas fa-play"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="text-center mt-4">
+                            <div class="text-xs text-gray-500">点击播放 • 可重复收听</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Instruction -->
+                <div class="px-6 mb-4">
+                    <div class="text-center">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">选择匹配的画面</h3>
+                        <p class="text-sm text-gray-600">哪个画面最能表达这个声音的含义？</p>
+                    </div>
+                </div>
+
+                <!-- Video Options -->
+                <div class="flex-1 px-6">
+                    <div class="grid grid-cols-2 gap-4">
+                        <!-- Option 1 -->
+                        <div class="video-option rounded-xl h-24 cursor-pointer correct" onclick="selectOption(this)">
+                            <div class="w-full h-full bg-gradient-to-br from-orange-400 to-red-500 rounded-xl relative">
+                                <img src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=200&h=150&fit=crop" 
+                                     alt="Coffee" class="w-full h-full object-cover rounded-xl">
+                                <div class="play-button">
+                                    <i class="fas fa-play"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Option 2 -->
+                        <div class="video-option rounded-xl h-24 cursor-pointer" onclick="selectOption(this)">
+                            <div class="w-full h-full bg-gradient-to-br from-blue-400 to-purple-500 rounded-xl relative">
+                                <img src="https://images.unsplash.com/photo-1544427920-c49ccfb85579?w=200&h=150&fit=crop" 
+                                     alt="Tea" class="w-full h-full object-cover rounded-xl">
+                                <div class="play-button">
+                                    <i class="fas fa-play"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Option 3 -->
+                        <div class="video-option rounded-xl h-24 cursor-pointer" onclick="selectOption(this)">
+                            <div class="w-full h-full bg-gradient-to-br from-green-400 to-blue-500 rounded-xl relative">
+                                <img src="https://images.unsplash.com/photo-1523362628745-0c100150b504?w=200&h=150&fit=crop" 
+                                     alt="Water" class="w-full h-full object-cover rounded-xl">
+                                <div class="play-button">
+                                    <i class="fas fa-play"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Option 4 -->
+                        <div class="video-option rounded-xl h-24 cursor-pointer" onclick="selectOption(this)">
+                            <div class="w-full h-full bg-gradient-to-br from-purple-400 to-pink-500 rounded-xl relative">
+                                <img src="https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=200&h=150&fit=crop" 
+                                     alt="Juice" class="w-full h-full object-cover rounded-xl">
+                                <div class="play-button">
+                                    <i class="fas fa-play"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hint -->
+                <div class="px-6 mt-6">
+                    <div class="floating-card rounded-xl p-4 soft-shadow">
+                        <div class="flex items-center text-sm text-gray-600">
+                            <i class="fas fa-lightbulb text-yellow-500 mr-2"></i>
+                            <span>💡 提示：仔细听音频中的关键信息</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function selectOption(option) {
+            // Remove selected class from all options
+            document.querySelectorAll('.video-option').forEach(opt => {
+                opt.classList.remove('selected', 'incorrect');
+            });
+            
+            // Add selected class to clicked option
+            option.classList.add('selected');
+            
+            // Simulate feedback after a short delay
+            setTimeout(() => {
+                if (option.classList.contains('correct')) {
+                    // Show success feedback
+                    showFeedback('correct', '很棒！你找到了正确的画面');
+                } else {
+                    option.classList.add('incorrect');
+                    showFeedback('incorrect', '别担心，你的大脑正在建立连接！');
+                }
+            }, 500);
+        }
+
+        function showFeedback(type, message) {
+            // Create feedback overlay
+            const overlay = document.createElement('div');
+            overlay.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            overlay.innerHTML = `
+                <div class="bg-white rounded-2xl p-6 mx-6 text-center soft-shadow">
+                    <div class="text-4xl mb-4">${type === 'correct' ? '🎉' : '💡'}</div>
+                    <div class="text-lg font-semibold text-gray-900 mb-2">${message}</div>
+                    ${type === 'incorrect' ? '<div class="text-sm text-gray-600">每一次尝试都让你更接近理解</div>' : ''}
+                </div>
+            `;
+            
+            document.body.appendChild(overlay);
+            
+            // Remove feedback after 2 seconds
+            setTimeout(() => {
+                document.body.removeChild(overlay);
+            }, 2000);
+        }
+    </script>
+</body>
+</html>

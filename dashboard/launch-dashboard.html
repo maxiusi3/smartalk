@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmarTalk MVP 启动监控仪表板</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1A237E 0%, #3F51B5 100%);
+            color: white;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.8;
+        }
+
+        .dashboard-container {
+            padding: 30px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .metric-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .metric-title {
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            opacity: 0.9;
+        }
+
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .metric-target {
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-success { background-color: #4CAF50; }
+        .status-warning { background-color: #FF9800; }
+        .status-error { background-color: #F44336; }
+
+        .chart-container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .funnel-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .funnel-stage {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .feedback-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .feedback-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .feedback-emoji {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .feedback-count {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .refresh-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #FF6B35;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background 0.3s ease;
+        }
+
+        .refresh-button:hover {
+            background: #E55A2B;
+        }
+
+        .last-updated {
+            text-align: center;
+            opacity: 0.7;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .funnel-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🚀 SmarTalk MVP 启动监控</h1>
+        <p class="subtitle">实时跟踪关键指标和用户反馈</p>
+    </div>
+
+    <button class="refresh-button" onclick="refreshData()">🔄 刷新数据</button>
+
+    <div class="dashboard-container">
+        <!-- 核心指标卡片 -->
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-title">🎯 北极星指标 - 用户激活率</div>
+                <div class="metric-value" id="activation-rate">--</div>
+                <div class="metric-target">目标: >40%</div>
+                <div id="activation-status"></div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-title">👥 总用户数</div>
+                <div class="metric-value" id="total-users">--</div>
+                <div class="metric-target">新用户注册</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-title">✨ 激活用户数</div>
+                <div class="metric-value" id="activated-users">--</div>
+                <div class="metric-target">完成Magic Moment</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-title">📈 D1留存率</div>
+                <div class="metric-value" id="d1-retention">--</div>
+                <div class="metric-target">目标: >50%</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-title">📊 D7留存率</div>
+                <div class="metric-value" id="d7-retention">--</div>
+                <div class="metric-target">目标: >30%</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-title">😊 用户满意度</div>
+                <div class="metric-value" id="satisfaction-rate">--</div>
+                <div class="metric-target">积极反馈比例</div>
+            </div>
+        </div>
+
+        <!-- 转化漏斗 -->
+        <div class="funnel-container">
+            <div class="chart-container">
+                <h3>🔄 转化漏斗</h3>
+                <div id="funnel-stages"></div>
+            </div>
+
+            <div class="chart-container">
+                <h3>📊 激活率趋势</h3>
+                <canvas id="activation-trend-chart" width="400" height="200"></canvas>
+            </div>
+        </div>
+
+        <!-- 用户反馈分析 -->
+        <div class="chart-container">
+            <h3>💬 用户反馈分析</h3>
+            <div class="feedback-grid" id="feedback-grid"></div>
+        </div>
+
+        <!-- 实时活动 -->
+        <div class="chart-container">
+            <h3>⚡ 实时活动</h3>
+            <div id="real-time-activity"></div>
+        </div>
+
+        <div class="last-updated" id="last-updated">
+            最后更新: --
+        </div>
+    </div>
+
+    <script>
+        // 模拟数据 - 在实际环境中这些数据来自API
+        let dashboardData = {
+            northStarMetric: {
+                activationRate: 42.5,
+                totalUsers: 1250,
+                activatedUsers: 531
+            },
+            retentionMetrics: {
+                d1Retention: 52.3,
+                d7Retention: 34.7
+            },
+            conversionFunnel: {
+                'App Launch': { users: 1250, conversionRate: 100 },
+                'Onboarding Started': { users: 1125, conversionRate: 90 },
+                'Interest Selected': { users: 1013, conversionRate: 81 },
+                'Preview Watched': { users: 912, conversionRate: 73 },
+                'Learning Started': { users: 821, conversionRate: 66 },
+                'First Clue Completed': { users: 739, conversionRate: 59 },
+                'All Clues Completed': { users: 612, conversionRate: 49 },
+                'Magic Moment (Activation)': { users: 531, conversionRate: 42.5 }
+            },
+            qualityMetrics: {
+                userSatisfaction: {
+                    totalResponses: 487,
+                    positiveRate: 78.2,
+                    feedbackDistribution: {
+                        '😍 完全听懂了！': 156,
+                        '🤩 比想象的容易！': 142,
+                        '😊 抓住了主线！': 98,
+                        '🔥 想学更多！': 91
+                    }
+                }
+            }
+        };
+
+        let activationTrendChart;
+
+        function updateMetrics() {
+            // 更新核心指标
+            document.getElementById('activation-rate').textContent = dashboardData.northStarMetric.activationRate.toFixed(1) + '%';
+            document.getElementById('total-users').textContent = dashboardData.northStarMetric.totalUsers.toLocaleString();
+            document.getElementById('activated-users').textContent = dashboardData.northStarMetric.activatedUsers.toLocaleString();
+            document.getElementById('d1-retention').textContent = dashboardData.retentionMetrics.d1Retention.toFixed(1) + '%';
+            document.getElementById('d7-retention').textContent = dashboardData.retentionMetrics.d7Retention.toFixed(1) + '%';
+            document.getElementById('satisfaction-rate').textContent = dashboardData.qualityMetrics.userSatisfaction.positiveRate.toFixed(1) + '%';
+
+            // 更新状态指示器
+            const activationStatus = document.getElementById('activation-status');
+            const rate = dashboardData.northStarMetric.activationRate;
+            if (rate >= 40) {
+                activationStatus.innerHTML = '<span class="status-indicator status-success"></span>达标';
+            } else if (rate >= 30) {
+                activationStatus.innerHTML = '<span class="status-indicator status-warning"></span>接近目标';
+            } else {
+                activationStatus.innerHTML = '<span class="status-indicator status-error"></span>需要改进';
+            }
+        }
+
+        function updateFunnel() {
+            const funnelContainer = document.getElementById('funnel-stages');
+            funnelContainer.innerHTML = '';
+
+            Object.entries(dashboardData.conversionFunnel).forEach(([stage, data]) => {
+                const stageElement = document.createElement('div');
+                stageElement.className = 'funnel-stage';
+                stageElement.innerHTML = `
+                    <span>${stage}</span>
+                    <span><strong>${data.users}</strong> (${data.conversionRate.toFixed(1)}%)</span>
+                `;
+                funnelContainer.appendChild(stageElement);
+            });
+        }
+
+        function updateFeedback() {
+            const feedbackGrid = document.getElementById('feedback-grid');
+            feedbackGrid.innerHTML = '';
+
+            Object.entries(dashboardData.qualityMetrics.userSatisfaction.feedbackDistribution).forEach(([emotion, count]) => {
+                const feedbackItem = document.createElement('div');
+                feedbackItem.className = 'feedback-item';
+                feedbackItem.innerHTML = `
+                    <div class="feedback-emoji">${emotion.split(' ')[0]}</div>
+                    <div class="feedback-count">${count}</div>
+                    <div>${emotion.substring(2)}</div>
+                `;
+                feedbackGrid.appendChild(feedbackItem);
+            });
+        }
+
+        function updateActivationTrendChart() {
+            const ctx = document.getElementById('activation-trend-chart').getContext('2d');
+            
+            if (activationTrendChart) {
+                activationTrendChart.destroy();
+            }
+
+            // 模拟24小时的激活率趋势数据
+            const hours = Array.from({length: 24}, (_, i) => `${i}:00`);
+            const activationData = [
+                35, 38, 41, 39, 42, 45, 43, 46, 44, 47, 45, 48,
+                46, 49, 47, 50, 48, 45, 43, 41, 39, 37, 36, 38
+            ];
+
+            activationTrendChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: hours,
+                    datasets: [{
+                        label: '激活率 (%)',
+                        data: activationData,
+                        borderColor: '#FF6B35',
+                        backgroundColor: 'rgba(255, 107, 53, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4
+                    }, {
+                        label: '目标线 (40%)',
+                        data: Array(24).fill(40),
+                        borderColor: '#4CAF50',
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: 'white'
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: {
+                                color: 'white'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        },
+                        y: {
+                            ticks: {
+                                color: 'white'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            min: 0,
+                            max: 60
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateRealTimeActivity() {
+            const activityContainer = document.getElementById('real-time-activity');
+            const activities = [
+                '🎯 用户 user_1234 完成了Magic Moment',
+                '📱 新用户 user_1235 开始了引导流程',
+                '✨ 用户 user_1236 选择了旅行主题',
+                '🔑 用户 user_1237 解锁了第10个故事线索',
+                '😍 用户 user_1238 反馈"完全听懂了！"'
+            ];
+
+            activityContainer.innerHTML = activities.map(activity => 
+                `<div style="padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">${activity}</div>`
+            ).join('');
+        }
+
+        function refreshData() {
+            // 模拟数据更新
+            dashboardData.northStarMetric.activationRate += (Math.random() - 0.5) * 2;
+            dashboardData.northStarMetric.totalUsers += Math.floor(Math.random() * 10);
+            dashboardData.northStarMetric.activatedUsers = Math.floor(dashboardData.northStarMetric.totalUsers * dashboardData.northStarMetric.activationRate / 100);
+
+            updateMetrics();
+            updateFunnel();
+            updateFeedback();
+            updateActivationTrendChart();
+            updateRealTimeActivity();
+
+            document.getElementById('last-updated').textContent = `最后更新: ${new Date().toLocaleString()}`;
+        }
+
+        // 初始化仪表板
+        function initDashboard() {
+            updateMetrics();
+            updateFunnel();
+            updateFeedback();
+            updateActivationTrendChart();
+            updateRealTimeActivity();
+            document.getElementById('last-updated').textContent = `最后更新: ${new Date().toLocaleString()}`;
+
+            // 每30秒自动刷新数据
+            setInterval(refreshData, 30000);
+        }
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', initDashboard);
+    </script>
+</body>
+</html>

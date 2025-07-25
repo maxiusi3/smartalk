@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Gradient -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="speechGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ff6b35;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f7931e;stop-opacity:1" />
+    </linearGradient>
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="8" stdDeviation="16" flood-color="#000000" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1024" height="1024" rx="180" ry="180" fill="url(#bgGradient)"/>
+  
+  <!-- Main Speech Bubble -->
+  <path d="M 200 300 Q 200 250 250 250 L 650 250 Q 700 250 700 300 L 700 500 Q 700 550 650 550 L 400 550 L 320 620 L 380 550 L 250 550 Q 200 550 200 500 Z" 
+        fill="url(#speechGradient)" 
+        filter="url(#shadow)"/>
+  
+  <!-- Inner Speech Bubble (smaller) -->
+  <path d="M 750 400 Q 750 380 770 380 L 850 380 Q 870 380 870 400 L 870 480 Q 870 500 850 500 L 800 500 L 780 520 L 790 500 L 770 500 Q 750 500 750 480 Z" 
+        fill="#ffffff" 
+        opacity="0.9"/>
+  
+  <!-- Text Elements -->
+  <text x="450" y="420" font-family="SF Pro Display, -apple-system, sans-serif" 
+        font-size="120" font-weight="bold" fill="#ffffff" text-anchor="middle">S</text>
+  
+  <!-- Sparkle Elements -->
+  <g fill="#ffffff" opacity="0.8">
+    <circle cx="300" cy="200" r="8"/>
+    <circle cx="750" cy="180" r="6"/>
+    <circle cx="850" cy="300" r="10"/>
+    <circle cx="180" cy="400" r="7"/>
+    <circle cx="820" cy="600" r="9"/>
+    <circle cx="200" cy="700" r="6"/>
+    <circle cx="600" cy="150" r="8"/>
+  </g>
+  
+  <!-- Sound Waves -->
+  <g stroke="#ffffff" stroke-width="8" fill="none" opacity="0.6">
+    <path d="M 750 350 Q 780 330 780 370 Q 780 410 750 390"/>
+    <path d="M 790 320 Q 830 290 830 350 Q 830 410 790 380"/>
+    <path d="M 830 290 Q 880 250 880 320 Q 880 390 830 350"/>
+  </g>
+</svg>

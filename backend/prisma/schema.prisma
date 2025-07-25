@@ -1,0 +1,147 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 用户表 - 支持匿名用户（基于设备ID）
+model User {
+  id         String   @id @default(cuid())
+  deviceId   String   @unique @map("device_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+  
+  // 关联关系
+  progress   UserProgress[]
+  events     AnalyticsEvent[]
+  
+  @@map("users")
+}
+
+// 兴趣主题表
+model Interest {
+  id          String   @id @default(cuid())
+  name        String   @unique // travel, movies, workplace
+  displayName String   @map("display_name") // 旅行, 电影, 职场
+  description String?
+  iconUrl     String?  @map("icon_url")
+  isActive    Boolean  @default(true) @map("is_active")
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  
+  // 关联关系
+  dramas      Drama[]
+  
+  @@map("interests")
+}
+
+// 迷你剧表
+model Drama {
+  id              String   @id @default(cuid())
+  title           String
+  description     String?
+  duration        Int      // 视频时长（秒）
+  videoUrl        String   @map("video_url")
+  videoUrlNoSubs  String   @map("video_url_no_subs") // 无字幕版本
+  subtitleUrl     String?  @map("subtitle_url")
+  thumbnailUrl    String?  @map("thumbnail_url")
+  difficulty      String   @default("beginner") // beginner, intermediate, advanced
+  isActive        Boolean  @default(true) @map("is_active")
+  sortOrder       Int      @default(0) @map("sort_order")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+  
+  // 外键
+  interestId      String   @map("interest_id")
+  interest        Interest @relation(fields: [interestId], references: [id], onDelete: Cascade)
+  
+  // 关联关系
+  keywords        Keyword[]
+  userProgress    UserProgress[]
+  
+  @@map("dramas")
+}
+
+// 核心词汇表
+model Keyword {
+  id              String   @id @default(cuid())
+  word            String   // 英文单词
+  translation     String   // 中文翻译
+  audioUrl        String   @map("audio_url")
+  subtitleStart   Float    @map("subtitle_start") // 字幕开始时间（秒）
+  subtitleEnd     Float    @map("subtitle_end")   // 字幕结束时间（秒）
+  sortOrder       Int      @default(0) @map("sort_order")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+  
+  // 外键
+  dramaId         String   @map("drama_id")
+  drama           Drama    @relation(fields: [dramaId], references: [id], onDelete: Cascade)
+  
+  // 关联关系
+  videoClips      KeywordVideoClip[]
+  progress        UserProgress[]
+  
+  @@map("keywords")
+}
+
+// vTPR练习的视频片段表
+model KeywordVideoClip {
+  id          String   @id @default(cuid())
+  videoUrl    String   @map("video_url")
+  startTime   Float    @map("start_time") // 片段开始时间（秒）
+  endTime     Float    @map("end_time")   // 片段结束时间（秒）
+  isCorrect   Boolean  @map("is_correct") // 是否为正确答案
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  
+  // 外键
+  keywordId   String   @map("keyword_id")
+  keyword     Keyword  @relation(fields: [keywordId], references: [id], onDelete: Cascade)
+  
+  @@map("keyword_video_clips")
+}
+
+// 用户学习进度表
+model UserProgress {
+  id              String   @id @default(cuid())
+  status          String   @default("locked") // locked, unlocked, completed
+  completedAt     DateTime? @map("completed_at")
+  attempts        Int      @default(0) // 尝试次数
+  correctAttempts Int      @default(0) @map("correct_attempts") // 正确次数
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+  
+  // 外键
+  userId          String   @map("user_id")
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dramaId         String   @map("drama_id")
+  drama           Drama    @relation(fields: [dramaId], references: [id], onDelete: Cascade)
+  keywordId       String?  @map("keyword_id") // 可选，用于跟踪单个词汇的进度
+  keyword         Keyword? @relation(fields: [keywordId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, dramaId, keywordId])
+  @@map("user_progress")
+}
+
+// 分析事件表
+model AnalyticsEvent {
+  id         String   @id @default(cuid())
+  eventType  String   @map("event_type") // onboarding_start, video_play, keyword_unlock, activation, etc.
+  eventData  Json?    @map("event_data") // 事件相关的额外数据 (JSON)
+  timestamp  DateTime @default(now())
+  
+  // 外键
+  userId     String   @map("user_id")
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("analytics_events")
+}

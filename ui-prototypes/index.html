@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmarTalk MVP - UI Design Prototypes</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15);
+        }
+        .prototype-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <div class="gradient-bg text-white py-16">
+        <div class="container mx-auto px-6 text-center">
+            <h1 class="text-4xl font-bold mb-4">SmarTalk MVP</h1>
+            <h2 class="text-2xl font-light mb-6">UI Design Prototypes</h2>
+            <p class="text-lg opacity-90 max-w-2xl mx-auto">
+                优雅的清新主义美学与功能的完美平衡 • 清新柔和的渐变配色与品牌色系浑然一体 • 轻盈通透的沉浸式体验
+            </p>
+        </div>
+    </div>
+
+    <!-- Design Principles -->
+    <div class="container mx-auto px-6 py-12">
+        <div class="text-center mb-12">
+            <h3 class="text-2xl font-bold text-gray-900 mb-4">设计原则</h3>
+            <div class="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white text-2xl mx-auto mb-4">
+                        <i class="fas fa-palette"></i>
+                    </div>
+                    <h4 class="font-semibold text-gray-900 mb-2">清新主义美学</h4>
+                    <p class="text-sm text-gray-600">恰到好处的留白设计，轻盈通透的沉浸式体验</p>
+                </div>
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-gradient-to-br from-green-400 to-blue-500 rounded-full flex items-center justify-center text-white text-2xl mx-auto mb-4">
+                        <i class="fas fa-layer-group"></i>
+                    </div>
+                    <h4 class="font-semibold text-gray-900 mb-2">信息层级清晰</h4>
+                    <p class="text-sm text-gray-600">微妙的阴影过渡与模块化卡片布局</p>
+                </div>
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-gradient-to-br from-purple-400 to-pink-500 rounded-full flex items-center justify-center text-white text-2xl mx-auto mb-4">
+                        <i class="fas fa-magic"></i>
+                    </div>
+                    <h4 class="font-semibold text-gray-900 mb-2">精致微交互</h4>
+                    <p class="text-sm text-gray-600">精心打磨的圆角，细腻的微交互，舒适的视觉比例</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Prototypes Grid -->
+        <div class="grid lg:grid-cols-3 md:grid-cols-2 gap-8">
+            <!-- Onboarding Screen -->
+            <div class="prototype-card rounded-2xl p-6 card-hover">
+                <div class="aspect-w-9 aspect-h-16 mb-4">
+                    <iframe src="onboarding-screen.html" class="w-full h-80 rounded-xl border-0"></iframe>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-2">引导页面</h3>
+                <p class="text-gray-600 mb-4">痛点共鸣与方法论介绍，建立用户信任和期待</p>
+                <div class="flex flex-wrap gap-2 mb-4">
+                    <span class="px-3 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">情感化设计</span>
+                    <span class="px-3 py-1 bg-green-100 text-green-800 text-xs rounded-full">渐进式引导</span>
+                </div>
+                <a href="onboarding-screen.html" target="_blank" class="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium">
+                    查看详情 <i class="fas fa-external-link-alt ml-2 text-sm"></i>
+                </a>
+            </div>
+
+            <!-- Interest Selection -->
+            <div class="prototype-card rounded-2xl p-6 card-hover">
+                <div class="aspect-w-9 aspect-h-16 mb-4">
+                    <iframe src="interest-selection-screen.html" class="w-full h-80 rounded-xl border-0"></iframe>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-2">兴趣选择</h3>
+                <p class="text-gray-600 mb-4">个性化主题选择，为用户量身定制学习内容</p>
+                <div class="flex flex-wrap gap-2 mb-4">
+                    <span class="px-3 py-1 bg-purple-100 text-purple-800 text-xs rounded-full">个性化</span>
+                    <span class="px-3 py-1 bg-orange-100 text-orange-800 text-xs rounded-full">卡片设计</span>
+                </div>
+                <a href="interest-selection-screen.html" target="_blank" class="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium">
+                    查看详情 <i class="fas fa-external-link-alt ml-2 text-sm"></i>
+                </a>
+            </div>
+
+            <!-- vTPR Learning -->
+            <div class="prototype-card rounded-2xl p-6 card-hover">
+                <div class="aspect-w-9 aspect-h-16 mb-4">
+                    <iframe src="vtpr-learning-screen.html" class="w-full h-80 rounded-xl border-0"></iframe>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-2">vTPR学习</h3>
+                <p class="text-gray-600 mb-4">音画匹配学习界面，核心的语言习得体验</p>
+                <div class="flex flex-wrap gap-2 mb-4">
+                    <span class="px-3 py-1 bg-indigo-100 text-indigo-800 text-xs rounded-full">交互式学习</span>
+                    <span class="px-3 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">进度可视化</span>
+                </div>
+                <a href="vtpr-learning-screen.html" target="_blank" class="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium">
+                    查看详情 <i class="fas fa-external-link-alt ml-2 text-sm"></i>
+                </a>
+            </div>
+
+            <!-- Theater Mode -->
+            <div class="prototype-card rounded-2xl p-6 card-hover">
+                <div class="aspect-w-9 aspect-h-16 mb-4">
+                    <iframe src="theater-mode-screen.html" class="w-full h-80 rounded-xl border-0"></iframe>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-2">剧场模式</h3>
+                <p class="text-gray-600 mb-4">沉浸式无字幕观看体验，"魔法时刻"的核心</p>
+                <div class="flex flex-wrap gap-2 mb-4">
+                    <span class="px-3 py-1 bg-red-100 text-red-800 text-xs rounded-full">沉浸式体验</span>
+                    <span class="px-3 py-1 bg-gray-100 text-gray-800 text-xs rounded-full">全屏播放</span>
+                </div>
+                <a href="theater-mode-screen.html" target="_blank" class="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium">
+                    查看详情 <i class="fas fa-external-link-alt ml-2 text-sm"></i>
+                </a>
+            </div>
+
+            <!-- Achievement -->
+            <div class="prototype-card rounded-2xl p-6 card-hover">
+                <div class="aspect-w-9 aspect-h-16 mb-4">
+                    <iframe src="achievement-screen.html" class="w-full h-80 rounded-xl border-0"></iframe>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-2">成就确认</h3>
+                <p class="text-gray-600 mb-4">情感化成就确认，强化用户的成功体验</p>
+                <div class="flex flex-wrap gap-2 mb-4">
+                    <span class="px-3 py-1 bg-green-100 text-green-800 text-xs rounded-full">情感化反馈</span>
+                    <span class="px-3 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">实用技巧</span>
+                </div>
+                <a href="achievement-screen.html" target="_blank" class="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium">
+                    查看详情 <i class="fas fa-external-link-alt ml-2 text-sm"></i>
+                </a>
+            </div>
+
+            <!-- Learning Map -->
+            <div class="prototype-card rounded-2xl p-6 card-hover">
+                <div class="aspect-w-9 aspect-h-16 mb-4">
+                    <iframe src="learning-map-screen.html" class="w-full h-80 rounded-xl border-0"></iframe>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-2">学习地图</h3>
+                <p class="text-gray-600 mb-4">可视化学习进度，激励用户持续学习</p>
+                <div class="flex flex-wrap gap-2 mb-4">
+                    <span class="px-3 py-1 bg-teal-100 text-teal-800 text-xs rounded-full">进度跟踪</span>
+                    <span class="px-3 py-1 bg-pink-100 text-pink-800 text-xs rounded-full">激励设计</span>
+                </div>
+                <a href="learning-map-screen.html" target="_blank" class="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium">
+                    查看详情 <i class="fas fa-external-link-alt ml-2 text-sm"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- Design Specifications -->
+        <div class="mt-16 bg-white rounded-2xl p-8 shadow-lg">
+            <h3 class="text-2xl font-bold text-gray-900 mb-6 text-center">设计规格说明</h3>
+            <div class="grid md:grid-cols-2 gap-8">
+                <div>
+                    <h4 class="text-lg font-semibold text-gray-900 mb-4">📱 设备规格</h4>
+                    <ul class="space-y-2 text-gray-600">
+                        <li>• 设计尺寸：375x812px (iPhone X/11/12 标准)</li>
+                        <li>• 手机模拟器样式，带有圆角和阴影</li>
+                        <li>• 状态栏显示时间、信号等模拟信息</li>
+                        <li>• 底部Tab栏为白色填充，100%不透明度</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-lg font-semibold text-gray-900 mb-4">🎨 视觉设计</h4>
+                    <ul class="space-y-2 text-gray-600">
+                        <li>• 使用Tailwind CSS框架</li>
+                        <li>• Font Awesome图标库</li>
+                        <li>• Unsplash高质量图片</li>
+                        <li>• 清新渐变配色方案</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-lg font-semibold text-gray-900 mb-4">🎯 交互设计</h4>
+                    <ul class="space-y-2 text-gray-600">
+                        <li>• 微妙的悬停效果和过渡动画</li>
+                        <li>• 卡片式布局，层次分明</li>
+                        <li>• 响应式设计，适配不同屏幕</li>
+                        <li>• 无障碍设计考虑</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-lg font-semibold text-gray-900 mb-4">🌈 色彩系统</h4>
+                    <div class="space-y-2">
+                        <div class="flex items-center">
+                            <div class="w-4 h-4 rounded-full bg-gradient-to-r from-blue-400 to-purple-500 mr-3"></div>
+                            <span class="text-gray-600">主色调：蓝紫渐变</span>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-4 h-4 rounded-full bg-gradient-to-r from-orange-400 to-red-500 mr-3"></div>
+                            <span class="text-gray-600">强调色：橙红渐变</span>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-4 h-4 rounded-full bg-gradient-to-r from-green-400 to-blue-500 mr-3"></div>
+                            <span class="text-gray-600">成功色：绿蓝渐变</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-8 mt-16">
+        <div class="container mx-auto px-6 text-center">
+            <h3 class="text-xl font-bold mb-2">SmarTalk MVP</h3>
+            <p class="text-gray-400 mb-4">优雅的清新主义美学 • 功能与美感的完美平衡</p>
+            <div class="flex justify-center space-x-6 text-sm text-gray-400">
+                <span>UI Design Prototypes</span>
+                <span>•</span>
+                <span>2024</span>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

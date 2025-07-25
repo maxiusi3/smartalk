@@ -1,0 +1,54 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "lib": ["ES2020"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": false,
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@components/*": ["./src/components/*"],
+      "@screens/*": ["./src/screens/*"],
+      "@navigation/*": ["./src/navigation/*"],
+      "@services/*": ["./src/services/*"],
+      "@utils/*": ["./src/utils/*"],
+      "@hooks/*": ["./src/hooks/*"],
+      "@constants/*": ["./src/constants/*"],
+      "@types/*": ["./src/types/*"],
+      "@store/*": ["./src/store/*"],
+      "@assets/*": ["./assets/*"],
+      "@tests/*": ["./__tests__/*"],
+      "@shared/*": ["../shared/*"],
+      "@shared/components/*": ["../shared/components/*"],
+      "@shared/utils/*": ["../shared/utils/*"],
+      "@shared/types/*": ["../shared/types/*"],
+      "@shared/constants/*": ["../shared/constants/*"],
+      "@shared/config/*": ["../shared/config/*"],
+      "@shared/services/*": ["../shared/services/*"],
+      "@content/*": ["../content/*"],
+      "@content/stories/*": ["../content/stories/*"],
+      "@content/videos/*": ["../content/videos/*"],
+      "@content/images/*": ["../content/images/*"],
+      "@content/audio/*": ["../content/audio/*"]
+    },
+    "typeRoots": ["node_modules/@types", "src/types"]
+  },
+  "include": [
+    "src/**/*",
+    "index.js"
+  ],
+  "exclude": [
+    "node_modules",
+    "android",
+    "ios"
+  ]
+}
