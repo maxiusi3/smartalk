@@ -21,11 +21,9 @@ const nextConfig = {
   // 禁用静态生成以避免预渲染错误
   output: 'standalone',
 
-  // 实验性功能：跳过错误页面的预渲染
-  experimental: {
-    skipMiddlewareUrlNormalize: true,
-    skipTrailingSlashRedirect: true,
-  },
+  // 跳过中间件处理以避免预渲染错误
+  skipMiddlewareUrlNormalize: true,
+  skipTrailingSlashRedirect: true,
 
   // Webpack 配置以完全排除 styled-jsx
   webpack: (config, { dev }) => {
