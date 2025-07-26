@@ -7,7 +7,8 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
+    // 使用 nextUrl 而不是 request.url 来避免静态生成错误
+    const { searchParams } = request.nextUrl;
 
     // 解析查询参数
     const category = searchParams.get('category');
