@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 interface VideoOption {
@@ -10,10 +10,10 @@ interface VideoOption {
   description: string;
 }
 
-export default function VTPRPage() {
+function VTPRContent() {
   const searchParams = useSearchParams();
-  const keyword = searchParams.get('keyword');
-  const interest = searchParams.get('interest');
+  const keyword = searchParams?.get('keyword');
+  const interest = searchParams?.get('interest');
   
   const [currentKeyword, setCurrentKeyword] = useState('check-in');
   const [currentTranslation, setCurrentTranslation] = useState('办理登机手续');
@@ -355,5 +355,36 @@ export default function VTPRPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function VTPRPage() {
+  return (
+    <Suspense fallback={
+      <div style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #1f2937 0%, #374151 100%)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontFamily: 'system-ui, sans-serif',
+        color: 'white'
+      }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{
+            width: '50px',
+            height: '50px',
+            border: '4px solid rgba(255, 255, 255, 0.3)',
+            borderTop: '4px solid #3b82f6',
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite',
+            margin: '0 auto 1rem'
+          }}></div>
+          <p style={{ color: '#d1d5db' }}>加载 VTPR 训练中...</p>
+        </div>
+      </div>
+    }>
+      <VTPRContent />
+    </Suspense>
   );
 }

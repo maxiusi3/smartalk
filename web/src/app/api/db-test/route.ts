@@ -8,6 +8,15 @@ import { createClient } from '@supabase/supabase-js';
 
 export async function GET(request: NextRequest) {
   try {
+    // 在构建时跳过数据库连接测试
+    if (process.env.NODE_ENV === 'production' && !process.env.VERCEL_ENV) {
+      return NextResponse.json({
+        status: 'skipped',
+        message: 'Database test skipped during build',
+        timestamp: new Date().toISOString()
+      });
+    }
+
     // 检查环境变量
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
