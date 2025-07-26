@@ -35,9 +35,9 @@ const nextConfig = {
   },
 
   // 禁用静态优化以避免预渲染问题
-  experimental: {
-    appDir: true,
-  },
+  // experimental: {
+  //   appDir: true, // 这个选项在 Next.js 15 中已经默认启用
+  // },
 
   // 输出配置 - 移除 standalone 以简化部署
   // output: 'export', // 不使用静态导出
