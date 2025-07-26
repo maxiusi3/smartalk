@@ -10,26 +10,41 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className = '', variant = 'primary', size = 'md', children, ...props }, ref) => {
-    const baseStyles = 'inline-flex items-center justify-center rounded-lg font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50'
-    
-    const variants = {
-      primary: 'bg-blue-600 text-white hover:bg-blue-700 focus-visible:ring-blue-500',
-      secondary: 'bg-gray-100 text-gray-900 hover:bg-gray-200 focus-visible:ring-gray-500',
-      outline: 'border border-gray-300 bg-transparent text-gray-700 hover:bg-gray-50 focus-visible:ring-gray-500',
-      ghost: 'text-gray-700 hover:bg-gray-100 focus-visible:ring-gray-500'
+    const getButtonStyles = () => {
+      const baseStyles = {
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: '0.5rem',
+        fontWeight: '500',
+        cursor: 'pointer',
+        border: 'none',
+        transition: 'all 0.2s'
+      }
+
+      const sizeStyles = {
+        sm: { padding: '0.5rem 1rem', fontSize: '0.875rem' },
+        md: { padding: '0.75rem 1.5rem', fontSize: '1rem' },
+        lg: { padding: '1rem 2rem', fontSize: '1.125rem' }
+      }
+
+      const variantStyles = {
+        primary: { background: '#2563eb', color: 'white' },
+        secondary: { background: '#f3f4f6', color: '#1f2937' },
+        outline: { background: 'transparent', color: '#374151', border: '1px solid #d1d5db' },
+        ghost: { background: 'transparent', color: '#374151' }
+      }
+
+      return {
+        ...baseStyles,
+        ...sizeStyles[size],
+        ...variantStyles[variant]
+      }
     }
-    
-    const sizes = {
-      sm: 'h-8 px-3 text-sm',
-      md: 'h-10 px-4 text-base',
-      lg: 'h-12 px-6 text-lg'
-    }
-    
-    const classes = `${baseStyles} ${variants[variant]} ${sizes[size]} ${className}`
-    
+
     return (
       <button
-        className={classes}
+        style={getButtonStyles()}
         ref={ref}
         {...props}
       >

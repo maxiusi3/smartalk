@@ -23,7 +23,12 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
     return (
       <div
         ref={ref}
-        className={`rounded-xl border border-gray-200 bg-white shadow-sm ${className}`}
+        style={{
+          borderRadius: '0.75rem',
+          border: '1px solid #e5e7eb',
+          background: 'white',
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+        }}
         {...props}
       >
         {children}
@@ -37,7 +42,12 @@ const CardHeader = React.forwardRef<HTMLDivElement, CardHeaderProps>(
     return (
       <div
         ref={ref}
-        className={`flex flex-col space-y-1.5 p-6 ${className}`}
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.375rem',
+          padding: '1.5rem'
+        }}
         {...props}
       >
         {children}
@@ -51,7 +61,10 @@ const CardContent = React.forwardRef<HTMLDivElement, CardContentProps>(
     return (
       <div
         ref={ref}
-        className={`p-6 pt-0 ${className}`}
+        style={{
+          padding: '1.5rem',
+          paddingTop: 0
+        }}
         {...props}
       >
         {children}
@@ -65,7 +78,12 @@ const CardFooter = React.forwardRef<HTMLDivElement, CardFooterProps>(
     return (
       <div
         ref={ref}
-        className={`flex items-center p-6 pt-0 ${className}`}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          padding: '1.5rem',
+          paddingTop: 0
+        }}
         {...props}
       >
         {children}
