@@ -1,23 +1,14 @@
 /**
  * 故事列表 API 路由
- * 简化版本，返回模拟数据以避免构建时的 React Context 错误
+ * 完全静态版本，不使用任何动态特性以避免构建错误
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 
-export async function GET(request: NextRequest) {
+// 完全静态的 API 路由
+export async function GET() {
   try {
-    // 使用 nextUrl 而不是 request.url 来避免静态生成错误
-    const { searchParams } = request.nextUrl;
-
-    // 解析查询参数
-    const category = searchParams.get('category');
-    const difficulty = searchParams.get('difficulty');
-    const searchQuery = searchParams.get('q');
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '10');
-
-    // 返回模拟数据
+    // 返回静态模拟数据，不使用任何查询参数
     const mockStories = [
       {
         id: '1',
@@ -35,47 +26,23 @@ export async function GET(request: NextRequest) {
       {
         id: '2',
         title: 'Job Interview Success',
-        description: 'Master professional English for job interviews',
+        description: 'Master professional English for interviews',
         category: 'business',
         difficulty: 'intermediate',
         duration: 450,
         thumbnailUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
-        keywords: ['interview', 'professional', 'confident'],
+        keywords: ['interview', 'professional', 'confidence'],
         viewCount: 89,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       }
     ];
 
-    // 简单的过滤
-    let filteredStories = mockStories;
-    if (category) {
-      filteredStories = filteredStories.filter(story => story.category === category);
-    }
-    if (difficulty) {
-      filteredStories = filteredStories.filter(story => story.difficulty === difficulty);
-    }
-    if (searchQuery) {
-      filteredStories = filteredStories.filter(story =>
-        story.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        story.description.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-
-    // 简单的分页
-    const startIndex = (page - 1) * limit;
-    const endIndex = startIndex + limit;
-    const paginatedStories = filteredStories.slice(startIndex, endIndex);
-
+    // 直接返回所有故事，不进行任何过滤或分页
     return NextResponse.json({
       success: true,
-      data: paginatedStories,
-      pagination: {
-        page,
-        limit,
-        total: filteredStories.length,
-        totalPages: Math.ceil(filteredStories.length / limit)
-      }
+      data: mockStories,
+      total: mockStories.length
     }, { status: 200 });
   } catch (error) {
     console.error('Stories API error:', error);
