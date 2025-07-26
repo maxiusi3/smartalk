@@ -1,20 +1,27 @@
+'use client'
+
 /**
- * 404 页面 - 完全静态，不使用任何外部组件
- * 当用户访问不存在的页面时显示
+ * 全局错误页面 - 处理应用级别的错误
  */
 
-export default function NotFound() {
+export default function GlobalError({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string }
+  reset: () => void
+}) {
   return (
     <html lang="zh-CN">
       <head>
-        <title>404 - 页面未找到 | SmarTalk</title>
+        <title>出错了 | SmarTalk</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <style dangerouslySetInnerHTML={{
           __html: `
             * { margin: 0; padding: 0; box-sizing: border-box; }
-            body {
+            body { 
               font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-              background: linear-gradient(135deg, #f0f9ff 0%, #e0e7ff 100%);
+              background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
               min-height: 100vh;
               display: flex;
               align-items: center;
@@ -27,9 +34,9 @@ export default function NotFound() {
               padding: 2rem;
             }
             .title {
-              font-size: 4rem;
+              font-size: 3rem;
               font-weight: bold;
-              color: #1f2937;
+              color: #dc2626;
               margin-bottom: 1rem;
             }
             .subtitle {
@@ -40,37 +47,29 @@ export default function NotFound() {
             }
             .description {
               color: #6b7280;
-              margin-bottom: 0.5rem;
-            }
-            .brand {
-              font-size: 0.875rem;
-              color: #9ca3af;
-              margin-top: 0.5rem;
+              margin-bottom: 1rem;
             }
             .button {
               display: inline-block;
-              background: #2563eb;
+              background: #dc2626;
               color: white;
               padding: 0.75rem 1.5rem;
               border-radius: 0.5rem;
               text-decoration: none;
-              margin: 1rem 0;
+              margin: 0.5rem;
+              cursor: pointer;
+              border: none;
+              font-size: 1rem;
               transition: background-color 0.2s;
             }
             .button:hover {
-              background: #1d4ed8;
+              background: #b91c1c;
             }
-            .links {
-              font-size: 0.875rem;
-              color: #9ca3af;
-              margin-top: 1rem;
+            .button-secondary {
+              background: #6b7280;
             }
-            .link {
-              color: #2563eb;
-              text-decoration: none;
-            }
-            .link:hover {
-              text-decoration: underline;
+            .button-secondary:hover {
+              background: #4b5563;
             }
           `
         }} />
@@ -78,32 +77,23 @@ export default function NotFound() {
       <body>
         <div className="container">
           <div>
-            <h1 className="title">404</h1>
-            <h2 className="subtitle">页面未找到</h2>
+            <h1 className="title">⚠️</h1>
+            <h2 className="subtitle">出错了</h2>
             <p className="description">
-              抱歉，您访问的页面不存在或已被移动。
-            </p>
-            <p className="brand">
-              SmarTalk - 智能英语学习平台
+              应用遇到了一个错误，我们正在努力修复。
             </p>
           </div>
-
+          
           <div>
-            <a href="/" className="button">
+            <button onClick={reset} className="button">
+              重试
+            </button>
+            <a href="/" className="button button-secondary">
               返回首页
             </a>
-
-            <div className="links">
-              <p>或者您可以：</p>
-              <div style={{ marginTop: '0.5rem' }}>
-                <a href="/onboarding" className="link">开始学习</a>
-                {' | '}
-                <a href="/auth/login" className="link">用户登录</a>
-              </div>
-            </div>
           </div>
         </div>
       </body>
     </html>
-  );
+  )
 }
