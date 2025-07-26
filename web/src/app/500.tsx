@@ -3,7 +3,7 @@
 // 强制动态渲染，避免预渲染时的 styled-jsx 错误
 export const dynamic = 'force-dynamic'
 
-export default function NotFound() {
+export default function Error500() {
   return (
     <div style={{
       minHeight: '100vh',
@@ -25,19 +25,19 @@ export default function NotFound() {
         <h1 style={{
           fontSize: '4rem',
           fontWeight: 'bold',
-          color: '#1f2937',
+          color: '#dc2626',
           marginBottom: '1rem'
-        }}>404</h1>
+        }}>500</h1>
         <h2 style={{
           fontSize: '1.5rem',
           color: '#374151',
           marginBottom: '1rem'
-        }}>页面未找到</h2>
+        }}>服务器内部错误</h2>
         <p style={{
           color: '#6b7280',
           marginBottom: '2rem',
           lineHeight: '1.5'
-        }}>抱歉，您访问的页面不存在或已被移动。</p>
+        }}>抱歉，服务器遇到了一些问题，请稍后再试。</p>
         <a
           href="/"
           style={{

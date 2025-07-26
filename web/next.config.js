@@ -17,6 +17,34 @@ const nextConfig = {
     styledComponents: false,
     styledJsx: false,
   },
+
+  // 禁用静态生成以避免预渲染错误
+  output: 'standalone',
+
+  // 实验性功能：跳过错误页面的预渲染
+  experimental: {
+    skipMiddlewareUrlNormalize: true,
+    skipTrailingSlashRedirect: true,
+  },
+
+  // Webpack 配置以完全排除 styled-jsx
+  webpack: (config, { dev }) => {
+    // 在生产环境中完全忽略 styled-jsx
+    if (!dev) {
+      config.externals = config.externals || [];
+      config.externals.push('styled-jsx');
+      config.externals.push('styled-jsx/style');
+
+      // 添加 alias 以防止 styled-jsx 被引用
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        'styled-jsx': false,
+        'styled-jsx/style': false,
+      };
+    }
+
+    return config;
+  },
 }
 
 module.exports = nextConfig

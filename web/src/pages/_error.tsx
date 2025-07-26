@@ -1,9 +1,5 @@
-'use client'
-
-// 强制动态渲染，避免预渲染时的 styled-jsx 错误
-export const dynamic = 'force-dynamic'
-
-export default function NotFound() {
+// 自定义错误页面，避免 styled-jsx 问题
+function Error({ statusCode }: { statusCode: number }) {
   return (
     <div style={{
       minHeight: '100vh',
@@ -25,19 +21,26 @@ export default function NotFound() {
         <h1 style={{
           fontSize: '4rem',
           fontWeight: 'bold',
-          color: '#1f2937',
+          color: statusCode === 404 ? '#1f2937' : '#dc2626',
           marginBottom: '1rem'
-        }}>404</h1>
+        }}>{statusCode}</h1>
         <h2 style={{
           fontSize: '1.5rem',
           color: '#374151',
           marginBottom: '1rem'
-        }}>页面未找到</h2>
+        }}>
+          {statusCode === 404 ? '页面未找到' : '服务器错误'}
+        </h2>
         <p style={{
           color: '#6b7280',
           marginBottom: '2rem',
           lineHeight: '1.5'
-        }}>抱歉，您访问的页面不存在或已被移动。</p>
+        }}>
+          {statusCode === 404 
+            ? '抱歉，您访问的页面不存在或已被移动。'
+            : '抱歉，服务器遇到了一些问题，请稍后再试。'
+          }
+        </p>
         <a
           href="/"
           style={{
@@ -56,3 +59,10 @@ export default function NotFound() {
     </div>
   );
 }
+
+Error.getInitialProps = ({ res, err }: any) => {
+  const statusCode = res ? res.statusCode : err ? err.statusCode : 404;
+  return { statusCode };
+};
+
+export default Error;
