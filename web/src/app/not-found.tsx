@@ -15,6 +15,9 @@ export default function NotFound() {
           <p className="text-gray-600">
             抱歉，您访问的页面不存在或已被移动。
           </p>
+          <p className="text-sm text-gray-500 mt-2">
+            SmarTalk - 智能英语学习平台
+          </p>
         </div>
         
         <div className="space-y-4">
