@@ -1,5 +1,8 @@
 'use client'
 
+// 禁用静态生成
+export const dynamic = 'force-dynamic'
+
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { MainLayout } from '@/components/layout/main-layout'
