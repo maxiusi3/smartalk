@@ -1,5 +1,13 @@
+'use client';
+
 // 简化的全局错误页面，避免任何可能触发 styled-jsx 的代码
-export default function GlobalError() {
+export default function GlobalError({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string };
+  reset: () => void;
+}) {
   return (
     <html lang="zh-CN">
       <head>
@@ -47,20 +55,21 @@ export default function GlobalError() {
               justifyContent: 'center',
               flexWrap: 'wrap'
             }}>
-              <a
-                href="/"
+              <button
+                onClick={() => reset()}
                 style={{
                   display: 'inline-block',
                   background: '#2563eb',
                   color: 'white',
                   padding: '0.75rem 1.5rem',
                   borderRadius: '0.5rem',
-                  textDecoration: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
                   fontWeight: '500'
                 }}
               >
-                刷新页面
-              </a>
+                重试
+              </button>
               <a
                 href="/"
                 style={{

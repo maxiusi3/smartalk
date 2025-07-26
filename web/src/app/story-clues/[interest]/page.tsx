@@ -1,12 +1,3 @@
-// 为静态导出生成参数
-export async function generateStaticParams() {
-  return [
-    { interest: 'travel' },
-    { interest: 'movie' },
-    { interest: 'workplace' },
-  ]
-}
-
 export default function StoryCluesPage() {
   return (
     <div style={{
