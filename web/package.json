@@ -36,6 +36,12 @@
   "license": "MIT",
   "dependencies": {
     "@playwright/test": "^1.54.1",
+    "@supabase/supabase-js": "^2.38.0",
+    "@supabase/ssr": "^0.0.10",
+    "@supabase/auth-helpers-nextjs": "^0.8.7",
+    "@supabase/auth-helpers-react": "^0.4.2",
+    "@supabase/auth-ui-react": "^0.4.6",
+    "@supabase/auth-ui-shared": "^0.1.8",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "framer-motion": "^12.23.7",
@@ -43,6 +49,7 @@
     "next": "15.4.3",
     "react": "19.1.0",
     "react-dom": "19.1.0",
+    "uuid": "^9.0.1",
     "zustand": "^5.0.6"
   },
   "devDependencies": {
