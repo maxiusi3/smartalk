@@ -26,10 +26,38 @@ export async function GET(request: NextRequest) {
     // 创建 Supabase 客户端
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // 测试数据库连接 - 查询一个简单的表
+    // 首先尝试创建 interests 表（如果不存在）
+    const createTableSQL = `
+      CREATE TABLE IF NOT EXISTS interests (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        name TEXT NOT NULL,
+        theme TEXT NOT NULL,
+        description TEXT,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+    `;
+
+    // 尝试创建表
+    const { error: createError } = await supabase.rpc('exec', { sql: createTableSQL });
+
+    // 如果 RPC 不可用，尝试插入一些测试数据
+    if (createError) {
+      console.log('Could not create table via RPC, trying direct insert...');
+    }
+
+    // 插入测试数据
+    const { error: insertError } = await supabase
+      .from('interests')
+      .upsert([
+        { id: '550e8400-e29b-41d4-a716-446655440001', name: '旅行英语', theme: 'travel', description: '学习旅行中常用的英语表达' },
+        { id: '550e8400-e29b-41d4-a716-446655440002', name: '电影对话', theme: 'movie', description: '通过经典电影对话学习自然的英语表达' },
+        { id: '550e8400-e29b-41d4-a716-446655440003', name: '职场沟通', theme: 'workplace', description: '掌握职场环境中的专业英语沟通技巧' }
+      ], { onConflict: 'id' });
+
+    // 测试数据库连接 - 查询 interests 表
     const { data, error } = await supabase
       .from('interests')
-      .select('id, name, theme')
+      .select('id, name, theme, description')
       .limit(5);
 
     if (error) {
@@ -37,7 +65,11 @@ export async function GET(request: NextRequest) {
         status: 'error',
         message: 'Database query failed',
         error: error.message,
-        details: error
+        details: {
+          createError: createError?.message,
+          insertError: insertError?.message,
+          queryError: error
+        }
       }, { status: 500 });
     }
 
