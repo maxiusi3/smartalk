@@ -1,109 +1,58 @@
 /**
- * 404 页面 - 完全静态，不使用任何外部组件
- * 当用户访问不存在的页面时显示
+ * 404 页面 - 最简单的实现
  */
 
+import React from 'react';
+
 export default function NotFound() {
-  return (
-    <html lang="zh-CN">
-      <head>
-        <title>404 - 页面未找到 | SmarTalk</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <style dangerouslySetInnerHTML={{
-          __html: `
-            * { margin: 0; padding: 0; box-sizing: border-box; }
-            body {
-              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-              background: linear-gradient(135deg, #f0f9ff 0%, #e0e7ff 100%);
-              min-height: 100vh;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-            }
-            .container {
-              max-width: 28rem;
-              width: 100%;
-              text-align: center;
-              padding: 2rem;
-            }
-            .title {
-              font-size: 4rem;
-              font-weight: bold;
-              color: #1f2937;
-              margin-bottom: 1rem;
-            }
-            .subtitle {
-              font-size: 1.5rem;
-              font-weight: 600;
-              color: #374151;
-              margin-bottom: 0.5rem;
-            }
-            .description {
-              color: #6b7280;
-              margin-bottom: 0.5rem;
-            }
-            .brand {
-              font-size: 0.875rem;
-              color: #9ca3af;
-              margin-top: 0.5rem;
-            }
-            .button {
-              display: inline-block;
-              background: #2563eb;
-              color: white;
-              padding: 0.75rem 1.5rem;
-              border-radius: 0.5rem;
-              text-decoration: none;
-              margin: 1rem 0;
-              transition: background-color 0.2s;
-            }
-            .button:hover {
-              background: #1d4ed8;
-            }
-            .links {
-              font-size: 0.875rem;
-              color: #9ca3af;
-              margin-top: 1rem;
-            }
-            .link {
-              color: #2563eb;
-              text-decoration: none;
-            }
-            .link:hover {
-              text-decoration: underline;
-            }
-          `
-        }} />
-      </head>
-      <body>
-        <div className="container">
-          <div>
-            <h1 className="title">404</h1>
-            <h2 className="subtitle">页面未找到</h2>
-            <p className="description">
-              抱歉，您访问的页面不存在或已被移动。
-            </p>
-            <p className="brand">
-              SmarTalk - 智能英语学习平台
-            </p>
-          </div>
-
-          <div>
-            <a href="/" className="button">
-              返回首页
-            </a>
-
-            <div className="links">
-              <p>或者您可以：</p>
-              <div style={{ marginTop: '0.5rem' }}>
-                <a href="/onboarding" className="link">开始学习</a>
-                {' | '}
-                <a href="/auth/login" className="link">用户登录</a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </body>
-    </html>
+  return React.createElement('div', {
+    style: {
+      minHeight: '100vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontFamily: 'system-ui, sans-serif',
+      background: 'linear-gradient(135deg, #f0f9ff 0%, #e0e7ff 100%)'
+    }
+  },
+    React.createElement('div', {
+      style: {
+        textAlign: 'center',
+        padding: '2rem'
+      }
+    },
+      React.createElement('h1', {
+        style: {
+          fontSize: '4rem',
+          fontWeight: 'bold',
+          color: '#1f2937',
+          marginBottom: '1rem'
+        }
+      }, '404'),
+      React.createElement('h2', {
+        style: {
+          fontSize: '1.5rem',
+          color: '#374151',
+          marginBottom: '1rem'
+        }
+      }, '页面未找到'),
+      React.createElement('p', {
+        style: {
+          color: '#6b7280',
+          marginBottom: '2rem'
+        }
+      }, '抱歉，您访问的页面不存在或已被移动。'),
+      React.createElement('a', {
+        href: '/',
+        style: {
+          display: 'inline-block',
+          background: '#2563eb',
+          color: 'white',
+          padding: '0.75rem 1.5rem',
+          borderRadius: '0.5rem',
+          textDecoration: 'none'
+        }
+      }, '返回首页')
+    )
   );
 }

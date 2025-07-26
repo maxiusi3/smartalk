@@ -8,45 +8,25 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  // 外部包配置
-  serverExternalPackages: ['@supabase/supabase-js'],
 
-  // 图片优化配置
+  // 最小化配置，禁用所有可能导致问题的功能
+  swcMinify: false,
+
+  // 禁用图片优化
   images: {
-    domains: [
-      'localhost',
-      'smartalk.app',
-      'cdn.smartalk.app',
-      'images.unsplash.com',
-      'lqrmpvkpfwvsihvjurjd.supabase.co',
-    ],
-    formats: ['image/webp', 'image/avif'],
+    unoptimized: true,
   },
 
-  // 重定向配置
-  async redirects() {
-    return [
-      {
-        source: '/home',
-        destination: '/',
-        permanent: true,
-      },
-    ]
-  },
+  // 禁用压缩
+  compress: false,
 
-  // 禁用静态优化以避免预渲染问题
-  // experimental: {
-  //   appDir: true, // 这个选项在 Next.js 15 中已经默认启用
-  // },
-
-  // 输出配置 - 移除 standalone 以简化部署
-  // output: 'export', // 不使用静态导出
-
-  // 压缩配置
-  compress: true,
-
-  // 电源配置（用于优化性能）
+  // 禁用电源头
   poweredByHeader: false,
+
+  // 禁用遥测
+  telemetry: {
+    disabled: true,
+  },
 }
 
 module.exports = nextConfig
