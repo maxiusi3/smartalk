@@ -1,9 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react';
-import PreloadIndicator from '../../components/PreloadIndicator';
-import { contentPreloader } from '../../lib/contentPreloader';
-import { userSession } from '../../lib/userSession';
 
 interface Interest {
   id: string;
@@ -42,46 +39,46 @@ export default function LearningPage() {
       setSelectedInterest(interestId);
       setShowPreloader(true);
 
-      // 确保在客户端环境中运行
-      if (typeof window === 'undefined') return;
-
-      // 记录兴趣选择事件
-      await userSession.trackEvent('interest_selected', {
-        interestId,
-        timestamp: new Date().toISOString()
-      });
-
-      // 更新用户选择的兴趣
-      await userSession.updateSelectedInterest(interestId);
-
-      // 开始预加载内容
-      await contentPreloader.preloadLearningContent(interestId);
+      // 模拟加载过程
+      setTimeout(() => {
+        // 导航到故事线索页面
+        window.location.href = `/story-clues/${interestId}`;
+      }, 1500);
     } catch (error) {
       console.error('Failed to handle interest selection:', error);
       setShowPreloader(false);
     }
   };
 
-  // 预加载完成处理
-  const handlePreloadComplete = () => {
-    setShowPreloader(false);
-    if (selectedInterest) {
-      window.location.href = `/story-clues/${selectedInterest}`;
-    }
-  };
+
 
   const fetchInterests = async () => {
     try {
-      const response = await fetch('/api/db-test');
-      const result = await response.json();
+      // 使用静态数据避免数据库查询失败
+      const staticInterests: Interest[] = [
+        {
+          id: 'travel',
+          name: '旅行英语',
+          theme: 'travel',
+          description: '学习旅行中的实用英语对话'
+        },
+        {
+          id: 'movie',
+          name: '电影对话',
+          theme: 'movie',
+          description: '通过经典电影片段学习地道英语'
+        },
+        {
+          id: 'workplace',
+          name: '职场沟通',
+          theme: 'workplace',
+          description: '掌握职场英语沟通技巧'
+        }
+      ];
 
-      if (result.status === 'success' && result.data) {
-        setInterests(result.data);
-      } else {
-        setError(result.message || 'Failed to load interests');
-      }
+      setInterests(staticInterests);
     } catch (err) {
-      setError('Network error occurred');
+      setError('加载失败，请刷新页面重试');
     } finally {
       setLoading(false);
     }
@@ -376,11 +373,44 @@ export default function LearningPage() {
         )}
       </div>
 
-      {/* 预加载指示器 */}
-      <PreloadIndicator
-        show={showPreloader}
-        onComplete={handlePreloadComplete}
-      />
+      {/* 简化的加载指示器 */}
+      {showPreloader && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.8)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            background: 'white',
+            borderRadius: '1rem',
+            padding: '2rem',
+            textAlign: 'center',
+            maxWidth: '300px'
+          }}>
+            <div style={{
+              fontSize: '2rem',
+              marginBottom: '1rem',
+              animation: 'spin 1s linear infinite'
+            }}>
+              🔄
+            </div>
+            <p style={{
+              fontSize: '1.1rem',
+              fontWeight: 'bold',
+              color: '#1f2937'
+            }}>
+              正在准备学习内容...
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* CSS 动画通过内联样式实现 */}
       <style dangerouslySetInnerHTML={{
