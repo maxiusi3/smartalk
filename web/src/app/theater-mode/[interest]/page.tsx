@@ -2,34 +2,42 @@
 
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
+import EnhancedVideoPlayer from '../../../components/EnhancedVideoPlayer';
+import { VideoKeyword } from '../../../lib/videoManager';
+import { userSession } from '../../../lib/userSession';
 
 export default function TheaterModePage() {
   const params = useParams();
-  const interest = params.interest as string;
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [showControls, setShowControls] = useState(true);
+  const interest = params?.interest as string;
   const [watchTime, setWatchTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [showMagicMoment, setShowMagicMoment] = useState(false);
+  const [selectedKeywords, setSelectedKeywords] = useState<VideoKeyword[]>([]);
+
+  // 获取视频ID
+  const videoId = `${interest}_story`;
 
   useEffect(() => {
-    let timer: NodeJS.Timeout;
-    if (isPlaying) {
-      timer = setInterval(() => {
-        setWatchTime(prev => prev + 1);
-      }, 1000);
-    }
-    return () => clearInterval(timer);
-  }, [isPlaying]);
+    // 记录剧场模式访问
+    const trackVisit = async () => {
+      await userSession.trackEvent('theater_mode_visit', {
+        interest,
+        videoId,
+        timestamp: new Date().toISOString()
+      });
+    };
 
-  useEffect(() => {
-    // 自动隐藏控制栏
-    let hideTimer: NodeJS.Timeout;
-    if (showControls && isPlaying) {
-      hideTimer = setTimeout(() => {
-        setShowControls(false);
-      }, 3000);
+    if (interest) {
+      trackVisit();
     }
-    return () => clearTimeout(hideTimer);
-  }, [showControls, isPlaying]);
+  }, [interest, videoId]);
+
+  // 检查是否达到魔法时刻
+  useEffect(() => {
+    if (watchTime >= 30 && !showMagicMoment) {
+      setShowMagicMoment(true);
+    }
+  }, [watchTime, showMagicMoment]);
 
   const getThemeInfo = (theme: string) => {
     switch (theme) {
@@ -44,14 +52,40 @@ export default function TheaterModePage() {
     }
   };
 
-  const themeInfo = getThemeInfo(interest);
+  const themeInfo = getThemeInfo(interest || 'travel');
 
-  const handlePlayPause = () => {
-    setIsPlaying(!isPlaying);
-    setShowControls(true);
+  // 处理视频进度更新
+  const handleProgress = (currentTime: number, videoDuration: number) => {
+    setWatchTime(Math.floor(currentTime));
+    setDuration(Math.floor(videoDuration));
   };
 
-  const handleComplete = () => {
+  // 处理关键词点击
+  const handleKeywordClick = async (keyword: VideoKeyword) => {
+    setSelectedKeywords(prev => [...prev, keyword]);
+
+    // 记录关键词点击事件
+    await userSession.trackEvent('keyword_clicked_in_theater', {
+      keyword: keyword.word,
+      translation: keyword.translation,
+      timestamp: keyword.startTime,
+      interest,
+      videoId
+    });
+  };
+
+  // 处理完成观看
+  const handleComplete = async () => {
+    // 记录完成事件
+    await userSession.trackEvent('theater_mode_completed', {
+      interest,
+      videoId,
+      watchTime,
+      duration,
+      completionRate: duration > 0 ? (watchTime / duration) * 100 : 0,
+      keywordsClicked: selectedKeywords.length
+    });
+
     // 导航到成就页面
     window.location.href = `/achievement/${interest}`;
   };
@@ -63,98 +97,109 @@ export default function TheaterModePage() {
   };
 
   return (
-    <div 
+    <div
       style={{
         minHeight: '100vh',
         background: '#000',
         position: 'relative',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
         fontFamily: 'system-ui, sans-serif',
-        color: 'white',
-        overflow: 'hidden'
+        color: 'white'
       }}
-      onClick={() => setShowControls(!showControls)}
     >
-      {/* 视频播放区域 */}
+      {/* 增强视频播放器 */}
+      <EnhancedVideoPlayer
+        videoId={videoId}
+        showSubtitles={false} // 剧场模式不显示字幕
+        showKeywordHighlight={true}
+        autoPlay={false}
+        onKeywordClick={handleKeywordClick}
+        onProgress={handleProgress}
+        style={{
+          width: '100%',
+          height: '100vh'
+        }}
+      />
+
+      {/* 观看时间指示器 */}
       <div style={{
-        width: '100%',
-        height: '100vh',
-        background: 'linear-gradient(45deg, #1f2937, #374151)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        position: 'relative'
+        position: 'absolute',
+        top: '2rem',
+        left: '2rem',
+        background: 'rgba(0, 0, 0, 0.7)',
+        padding: '0.75rem 1.5rem',
+        borderRadius: '1rem',
+        fontSize: '1rem',
+        backdropFilter: 'blur(10px)'
       }}>
-        {/* 模拟视频内容 */}
         <div style={{
-          textAlign: 'center',
-          opacity: isPlaying ? 0.3 : 1,
-          transition: 'opacity 0.3s ease'
+          display: 'flex',
+          alignItems: 'center',
+          gap: '1rem'
         }}>
-          <div style={{ fontSize: '6rem', marginBottom: '2rem' }}>
-            {themeInfo.icon}
+          <span>{themeInfo.icon}</span>
+          <div>
+            <div style={{ fontWeight: 'bold', marginBottom: '0.25rem' }}>
+              {themeInfo.name}
+            </div>
+            <div style={{ fontSize: '0.8rem', opacity: 0.8 }}>
+              观看时间: {formatTime(watchTime)} / {formatTime(duration)}
+            </div>
           </div>
-          <h2 style={{
-            fontSize: '3rem',
+        </div>
+      </div>
+
+      {/* 已点击关键词显示 */}
+      {selectedKeywords.length > 0 && (
+        <div style={{
+          position: 'absolute',
+          bottom: '2rem',
+          left: '2rem',
+          background: 'rgba(0, 0, 0, 0.7)',
+          padding: '1rem',
+          borderRadius: '0.5rem',
+          maxWidth: '300px',
+          backdropFilter: 'blur(10px)'
+        }}>
+          <h4 style={{
+            fontSize: '0.9rem',
             fontWeight: 'bold',
-            marginBottom: '1rem',
+            marginBottom: '0.5rem',
             color: themeInfo.color
           }}>
-            {themeInfo.name}
-          </h2>
-          <p style={{
-            fontSize: '1.5rem',
-            color: '#d1d5db',
-            marginBottom: '2rem'
-          }}>
-            无字幕沉浸式体验
-          </p>
-          {!isPlaying && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePlayPause();
-              }}
-              style={{
-                background: themeInfo.color,
-                color: 'white',
-                border: 'none',
-                borderRadius: '50%',
-                width: '80px',
-                height: '80px',
-                fontSize: '2rem',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                margin: '0 auto',
-                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)'
-              }}
-            >
-              ▶️
-            </button>
-          )}
-        </div>
-
-        {/* 播放进度指示器 */}
-        {isPlaying && (
+            已学习关键词 ({selectedKeywords.length})
+          </h4>
           <div style={{
-            position: 'absolute',
-            top: '2rem',
-            right: '2rem',
-            background: 'rgba(0, 0, 0, 0.7)',
-            padding: '0.5rem 1rem',
-            borderRadius: '1rem',
-            fontSize: '1rem',
-            opacity: showControls ? 1 : 0,
-            transition: 'opacity 0.3s ease'
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '0.25rem'
           }}>
-            {formatTime(watchTime)} / 3:00
+            {selectedKeywords.slice(-5).map((keyword, index) => (
+              <span
+                key={`${keyword.id}-${index}`}
+                style={{
+                  background: `${themeInfo.color}30`,
+                  color: themeInfo.color,
+                  padding: '0.25rem 0.5rem',
+                  borderRadius: '0.25rem',
+                  fontSize: '0.7rem',
+                  fontWeight: '500'
+                }}
+              >
+                {keyword.word}
+              </span>
+            ))}
+            {selectedKeywords.length > 5 && (
+              <span style={{
+                color: '#9ca3af',
+                fontSize: '0.7rem',
+                padding: '0.25rem'
+              }}>
+                +{selectedKeywords.length - 5} more
+              </span>
+            )}
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* 控制栏 */}
       <div style={{
@@ -268,54 +313,94 @@ export default function TheaterModePage() {
       </div>
 
       {/* 魔法时刻提示 */}
-      {watchTime >= 30 && (
+      {showMagicMoment && (
         <div style={{
           position: 'absolute',
           top: '50%',
           left: '50%',
           transform: 'translate(-50%, -50%)',
-          background: 'rgba(34, 197, 94, 0.9)',
+          background: 'rgba(34, 197, 94, 0.95)',
           color: 'white',
-          padding: '2rem',
+          padding: '2.5rem',
           borderRadius: '1rem',
           textAlign: 'center',
-          maxWidth: '400px',
-          boxShadow: '0 10px 30px rgba(0, 0, 0, 0.5)',
-          opacity: showControls ? 1 : 0,
-          transition: 'opacity 0.3s ease'
+          maxWidth: '450px',
+          boxShadow: '0 20px 40px rgba(0, 0, 0, 0.6)',
+          backdropFilter: 'blur(10px)',
+          border: '2px solid rgba(255, 255, 255, 0.2)',
+          zIndex: 1000
         }}>
-          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>✨</div>
+          <div style={{
+            fontSize: '4rem',
+            marginBottom: '1rem',
+            animation: 'bounce 2s infinite'
+          }}>✨</div>
+
           <h3 style={{
-            fontSize: '1.5rem',
+            fontSize: '1.8rem',
             fontWeight: 'bold',
             marginBottom: '1rem'
           }}>
-            魔法时刻到了！
+            🎉 魔法时刻到了！
           </h3>
+
           <p style={{
-            marginBottom: '1.5rem',
-            lineHeight: '1.5'
+            marginBottom: '1rem',
+            lineHeight: '1.6',
+            fontSize: '1.1rem'
           }}>
-            你已经观看了足够的内容，现在可以体验无字幕理解的成就感了！
+            你已经观看了 {formatTime(watchTime)} 的内容，体验了无字幕理解的神奇感觉！
           </p>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleComplete();
-            }}
-            style={{
-              background: 'white',
-              color: '#22c55e',
-              border: 'none',
-              padding: '1rem 2rem',
-              borderRadius: '0.5rem',
-              cursor: 'pointer',
-              fontWeight: 'bold',
-              fontSize: '1rem'
-            }}
-          >
-            🎯 确认理解并继续
-          </button>
+
+          {selectedKeywords.length > 0 && (
+            <p style={{
+              marginBottom: '1.5rem',
+              fontSize: '0.9rem',
+              opacity: 0.9
+            }}>
+              并且学习了 {selectedKeywords.length} 个关键词 🎯
+            </p>
+          )}
+
+          <div style={{
+            display: 'flex',
+            gap: '1rem',
+            justifyContent: 'center',
+            flexWrap: 'wrap'
+          }}>
+            <button
+              onClick={handleComplete}
+              style={{
+                background: 'white',
+                color: '#22c55e',
+                border: 'none',
+                padding: '1rem 2rem',
+                borderRadius: '0.5rem',
+                cursor: 'pointer',
+                fontWeight: 'bold',
+                fontSize: '1rem',
+                boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2)'
+              }}
+            >
+              🏆 查看成就
+            </button>
+
+            <button
+              onClick={() => setShowMagicMoment(false)}
+              style={{
+                background: 'rgba(255, 255, 255, 0.2)',
+                color: 'white',
+                border: '1px solid rgba(255, 255, 255, 0.3)',
+                padding: '1rem 2rem',
+                borderRadius: '0.5rem',
+                cursor: 'pointer',
+                fontWeight: 'bold',
+                fontSize: '1rem'
+              }}
+            >
+              继续观看
+            </button>
+          </div>
         </div>
       )}
 

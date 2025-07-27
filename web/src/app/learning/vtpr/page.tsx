@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useProgress } from '../../../hooks/useProgress';
 import { userSession } from '../../../lib/userSession';
+import VTPRVideoOption from '../../../components/VTPRVideoOption';
 
 interface VideoOption {
   id: string;
@@ -215,91 +216,19 @@ function VTPRContent() {
             marginBottom: '2rem'
           }}>
             {videoOptions.map((option, index) => (
-              <div
+              <VTPRVideoOption
                 key={option.id}
-                style={{
-                  background: 'rgba(255, 255, 255, 0.1)',
-                  borderRadius: '1rem',
-                  overflow: 'hidden',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  border: selectedOption === option.id 
-                    ? `3px solid ${themeColor}` 
-                    : '1px solid rgba(255, 255, 255, 0.2)',
-                  position: 'relative'
-                }}
-                onClick={() => handleOptionSelect(option.id)}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-5px)';
-                  e.currentTarget.style.boxShadow = '0 10px 25px rgba(0, 0, 0, 0.3)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = 'none';
-                }}
-              >
-                {/* 选项编号 */}
-                <div style={{
-                  position: 'absolute',
-                  top: '1rem',
-                  left: '1rem',
-                  background: themeColor,
-                  color: 'white',
-                  width: '40px',
-                  height: '40px',
-                  borderRadius: '50%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '1.2rem',
-                  fontWeight: 'bold',
-                  zIndex: 10
-                }}>
-                  {String.fromCharCode(65 + index)}
-                </div>
-
-                {/* 视频预览 */}
-                <div style={{
-                  height: '200px',
-                  background: 'linear-gradient(45deg, #374151, #4b5563)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  position: 'relative'
-                }}>
-                  <div style={{
-                    fontSize: '3rem',
-                    opacity: 0.7
-                  }}>
-                    🎬
-                  </div>
-                  <div style={{
-                    position: 'absolute',
-                    bottom: '1rem',
-                    right: '1rem',
-                    background: 'rgba(0, 0, 0, 0.7)',
-                    color: 'white',
-                    padding: '0.25rem 0.5rem',
-                    borderRadius: '0.25rem',
-                    fontSize: '0.8rem'
-                  }}>
-                    点击播放
-                  </div>
-                </div>
-
-                {/* 描述 */}
-                <div style={{
-                  padding: '1.5rem'
-                }}>
-                  <p style={{
-                    color: '#e5e7eb',
-                    fontSize: '1rem',
-                    textAlign: 'center'
-                  }}>
-                    {option.description}
-                  </p>
-                </div>
-              </div>
+                id={option.id}
+                videoUrl={option.videoUrl}
+                thumbnailUrl={`https://images.unsplash.com/photo-${1500000000000 + index}?w=400&h=200&fit=crop`}
+                description={option.description}
+                isCorrect={option.isCorrect}
+                isSelected={selectedOption === option.id}
+                optionLabel={String.fromCharCode(65 + index)}
+                themeColor={themeColor}
+                onSelect={handleOptionSelect}
+                disabled={showResult}
+              />
             ))}
           </div>
         ) : (

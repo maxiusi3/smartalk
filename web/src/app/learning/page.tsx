@@ -1,6 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react';
+import PreloadIndicator from '../../components/PreloadIndicator';
+import { contentPreloader } from '../../lib/contentPreloader';
+import { userSession } from '../../lib/userSession';
 
 interface Interest {
   id: string;
@@ -13,10 +16,38 @@ export default function LearningPage() {
   const [interests, setInterests] = useState<Interest[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedInterest, setSelectedInterest] = useState<string | null>(null);
+  const [showPreloader, setShowPreloader] = useState(false);
 
   useEffect(() => {
     fetchInterests();
   }, []);
+
+  // 处理兴趣选择
+  const handleInterestSelect = async (interestId: string) => {
+    setSelectedInterest(interestId);
+    setShowPreloader(true);
+
+    // 记录兴趣选择事件
+    await userSession.trackEvent('interest_selected', {
+      interestId,
+      timestamp: new Date().toISOString()
+    });
+
+    // 更新用户选择的兴趣
+    await userSession.updateSelectedInterest(interestId);
+
+    // 开始预加载内容
+    await contentPreloader.preloadLearningContent(interestId);
+  };
+
+  // 预加载完成处理
+  const handlePreloadComplete = () => {
+    setShowPreloader(false);
+    if (selectedInterest) {
+      window.location.href = `/story-clues/${selectedInterest}`;
+    }
+  };
 
   const fetchInterests = async () => {
     try {
@@ -188,10 +219,7 @@ export default function LearningPage() {
                     e.currentTarget.style.transform = 'translateY(0)';
                     e.currentTarget.style.boxShadow = '0 10px 25px rgba(0, 0, 0, 0.1)';
                   }}
-                  onClick={() => {
-                    // 导航到具体的学习内容
-                    window.location.href = `/learning/story-clues/${interest.theme}`;
-                  }}
+                  onClick={() => handleInterestSelect(interest.theme)}
                 >
                   {/* 主题图标和标题 */}
                   <div style={{
@@ -319,6 +347,12 @@ export default function LearningPage() {
           </>
         )}
       </div>
+
+      {/* 预加载指示器 */}
+      <PreloadIndicator
+        show={showPreloader}
+        onComplete={handlePreloadComplete}
+      />
 
       {/* CSS 动画 */}
       <style jsx>{`
