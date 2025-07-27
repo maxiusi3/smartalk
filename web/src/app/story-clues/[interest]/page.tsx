@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { useProgress } from '../../../hooks/useProgress';
 import { userSession } from '../../../lib/userSession';
 import { contentManager, KeywordContent } from '../../../lib/contentManager';
+import { progressManager } from '../../../lib/progressManager';
 
 interface Keyword {
   id: string;
@@ -103,12 +104,15 @@ export default function StoryCluesPage() {
   const storyProgress = getStoryProgress(storyId, keywords);
   const unlockedCount = storyProgress.unlockedKeywords;
 
-  const handleKeywordClick = (keyword: Keyword) => {
+  const handleKeywordClick = async (keyword: Keyword) => {
     const isUnlocked = isKeywordUnlocked(storyId, keyword.id);
 
     if (isUnlocked) {
       setSelectedKeyword(keyword);
     } else {
+      // 更新故事进度为线索收集阶段
+      await progressManager.updateStoryProgress(`${interest}_story`, interest, 'clues_collecting');
+
       // 导航到 VTPR 学习页面
       window.location.href = `/learning/vtpr?keyword=${keyword.id}&interest=${interest}&storyId=${storyId}`;
     }

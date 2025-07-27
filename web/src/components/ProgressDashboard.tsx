@@ -1,29 +1,27 @@
 /**
- * 学习进度仪表板组件
+ * 学习进度仪表板组件 - 使用新的进度管理系统
  * 显示用户的学习统计和进度可视化
  */
 
 'use client'
 
-import { useEffect, useState } from 'react';
-import { useProgress } from '../hooks/useProgress';
+import { useState, useEffect } from 'react';
+import { progressManager, UserProgress, LearningStats } from '../lib/progressManager';
 
 interface ProgressDashboardProps {
   compact?: boolean;
   showExportButton?: boolean;
+  className?: string;
 }
 
-export default function ProgressDashboard({ 
-  compact = false, 
-  showExportButton = false 
+export default function ProgressDashboard({
+  compact = false,
+  showExportButton = false,
+  className = ''
 }: ProgressDashboardProps) {
-  const { 
-    isLoading, 
-    stats, 
-    exportLearningData,
-    refreshProgress 
-  } = useProgress();
-
+  const [userProgress, setUserProgress] = useState<UserProgress | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
 
   // 计算完成率

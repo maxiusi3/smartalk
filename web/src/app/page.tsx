@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react';
+import EnhancedProgressDashboard from '../components/EnhancedProgressDashboard';
 
 export default function Home() {
   const [isMobile, setIsMobile] = useState(false);
@@ -157,6 +158,15 @@ export default function Home() {
             </p>
           </div>
         </div>
+      </div>
+
+      {/* 进度仪表板 */}
+      <div style={{
+        maxWidth: '1200px',
+        width: '100%',
+        marginBottom: '3rem'
+      }}>
+        <EnhancedProgressDashboard compact={true} />
       </div>
 
       {/* 功能卡片区域 */}

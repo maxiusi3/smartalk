@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { contentManager, VTPRExercise } from '../../../lib/contentManager';
+import { progressManager } from '../../../lib/progressManager';
 import { useProgress } from '../../../hooks/useProgress';
 import { userSession } from '../../../lib/userSession';
 import VTPRVideoOption from '../../../components/VTPRVideoOption';
@@ -101,7 +102,7 @@ function VTPRContent() {
       setShowResult(true);
       setAttempts(prev => prev + 1);
 
-      // 保存学习进度
+      // 保存学习进度到旧系统
       if (keyword && storyId && typeof window !== 'undefined') {
         try {
           await saveKeywordProgress(storyId, keyword, option.isCorrect, option.isCorrect);
@@ -117,6 +118,25 @@ function VTPRContent() {
           });
         } catch (error) {
           console.error('Failed to save progress:', error);
+        }
+      }
+
+      // 保存学习进度到新系统
+      if (currentExercise && interest) {
+        try {
+          await progressManager.updateKeywordProgress(
+            currentExercise.keyword,
+            currentExercise.keyword,
+            interest,
+            option.isCorrect
+          );
+
+          // 如果正确，更新故事进度
+          if (option.isCorrect) {
+            await progressManager.updateStoryProgress(`${interest}_story`, interest, 'vtpr_training');
+          }
+        } catch (error) {
+          console.error('Failed to save progress to new system:', error);
         }
       }
     }
