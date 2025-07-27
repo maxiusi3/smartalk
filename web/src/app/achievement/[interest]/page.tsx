@@ -2,11 +2,15 @@
 
 import { useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
+import { progressManager } from '../../../lib/progressManager';
+import { magicMomentDetector } from '../../../lib/magicMomentDetector';
 
 export default function AchievementPage() {
   const params = useParams();
   const interest = params?.interest as string;
   const [isMobile, setIsMobile] = useState(false);
+  const [userProgress, setUserProgress] = useState<any>(null);
+  const [magicMoments, setMagicMoments] = useState<any[]>([]);
 
   // 检测移动设备
   useEffect(() => {
@@ -18,6 +22,19 @@ export default function AchievementPage() {
       window.addEventListener('resize', checkMobile);
       return () => window.removeEventListener('resize', checkMobile);
     }
+  }, []);
+
+  // 加载用户进度和魔法时刻
+  useEffect(() => {
+    const loadData = () => {
+      const progress = progressManager.getUserProgress();
+      setUserProgress(progress);
+
+      const recentMoments = magicMomentDetector.getRecentMagicMoments();
+      setMagicMoments(recentMoments);
+    };
+
+    loadData();
   }, []);
 
   const getThemeInfo = (theme: string) => {
@@ -162,6 +179,78 @@ export default function AchievementPage() {
             </div>
           </div>
         </div>
+
+        {/* 魔法时刻展示 */}
+        {magicMoments.length > 0 && (
+          <div style={{
+            background: 'rgba(255, 255, 255, 0.95)',
+            borderRadius: '1rem',
+            padding: isMobile ? '1.5rem' : '2rem',
+            marginBottom: '2rem',
+            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
+            border: '2px solid #ffd700'
+          }}>
+            <h2 style={{
+              fontSize: isMobile ? '1.3rem' : '1.6rem',
+              fontWeight: 'bold',
+              color: '#1f2937',
+              marginBottom: '1.5rem',
+              textAlign: 'center',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.5rem'
+            }}>
+              ✨ 你的魔法时刻
+            </h2>
+
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(280px, 1fr))',
+              gap: '1rem'
+            }}>
+              {magicMoments.slice(0, 2).map((moment) => (
+                <div key={moment.id} style={{
+                  background: `linear-gradient(135deg, ${moment.rarity === 'legendary' ? '#ffd700' : moment.rarity === 'epic' ? '#9d4edd' : '#3b82f6'}20, ${moment.rarity === 'legendary' ? '#ffd700' : moment.rarity === 'epic' ? '#9d4edd' : '#3b82f6'}10)`,
+                  borderRadius: '0.75rem',
+                  padding: '1.5rem',
+                  border: `2px solid ${moment.rarity === 'legendary' ? '#ffd700' : moment.rarity === 'epic' ? '#9d4edd' : '#3b82f6'}30`,
+                  textAlign: 'center'
+                }}>
+                  <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>
+                    {moment.icon}
+                  </div>
+                  <h3 style={{
+                    fontSize: '1.1rem',
+                    fontWeight: 'bold',
+                    color: '#1f2937',
+                    marginBottom: '0.5rem'
+                  }}>
+                    {moment.title}
+                  </h3>
+                  <p style={{
+                    fontSize: '0.9rem',
+                    color: '#4b5563',
+                    marginBottom: '1rem',
+                    lineHeight: 1.4
+                  }}>
+                    {moment.description}
+                  </p>
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    fontSize: '0.8rem',
+                    color: '#6b7280'
+                  }}>
+                    <span>{moment.rarity === 'legendary' ? '传奇' : moment.rarity === 'epic' ? '史诗' : moment.rarity === 'rare' ? '稀有' : '普通'}</span>
+                    <span>+{moment.experienceReward} EXP</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* 鼓励文字 */}
         <div style={{

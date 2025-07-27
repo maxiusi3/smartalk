@@ -2,11 +2,20 @@
 
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
+import { magicMomentDetector, MagicMoment } from '../../../lib/magicMomentDetector';
+import { progressManager } from '../../../lib/progressManager';
+import MagicMomentCelebration from '../../../components/MagicMomentCelebration';
+import MagicMomentShare from '../../../components/MagicMomentShare';
 
 export default function TheaterModePage() {
   const params = useParams();
   const interest = params?.interest as string;
   const [isMobile, setIsMobile] = useState(false);
+  const [magicMoment, setMagicMoment] = useState<MagicMoment | null>(null);
+  const [showShare, setShowShare] = useState(false);
+  const [sessionStartTime, setSessionStartTime] = useState<number>(0);
+  const [keywordsLearned, setKeywordsLearned] = useState<number>(0);
+  const [currentAccuracy, setCurrentAccuracy] = useState<number>(0);
 
   // 检测移动设备
   useEffect(() => {
@@ -36,7 +45,72 @@ export default function TheaterModePage() {
 
   const themeInfo = getThemeInfo(interest || 'travel');
 
+  // 初始化会话和检测魔法时刻
+  useEffect(() => {
+    if (interest) {
+      // 记录会话开始时间
+      setSessionStartTime(Date.now());
 
+      // 开始学习会话
+      const session = progressManager.startSession(interest);
+
+      // 更新故事进度为剧场模式
+      progressManager.updateStoryProgress(`${interest}_story`, interest, 'theater_mode');
+
+      // 模拟获取用户当前学习数据
+      const userProgress = progressManager.getUserProgress();
+      if (userProgress) {
+        const themeStats = progressManager.getThemeStats(interest);
+        setKeywordsLearned(themeStats.completed);
+        setCurrentAccuracy(themeStats.accuracy);
+      }
+    }
+
+    return () => {
+      // 组件卸载时结束会话
+      if (sessionStartTime > 0) {
+        progressManager.endSession();
+      }
+    };
+  }, [interest, sessionStartTime]);
+
+  // 模拟视频观看完成后的魔法时刻检测
+  const handleVideoComplete = async () => {
+    if (!sessionStartTime) return;
+
+    const sessionDuration = Math.round((Date.now() - sessionStartTime) / 1000 / 60); // 分钟
+
+    // 检测魔法时刻
+    const detectedMoment = await magicMomentDetector.detectMagicMoment({
+      theme: interest,
+      sessionDuration,
+      keywordsLearned,
+      accuracy: currentAccuracy,
+      completedStory: true
+    });
+
+    if (detectedMoment) {
+      setMagicMoment(detectedMoment);
+    }
+
+    // 更新故事进度为完成
+    await progressManager.updateStoryProgress(`${interest}_story`, interest, 'completed');
+  };
+
+  // 处理魔法时刻分享
+  const handleShare = (content: any) => {
+    setShowShare(true);
+  };
+
+  // 关闭魔法时刻庆祝
+  const handleCloseMagicMoment = () => {
+    setMagicMoment(null);
+  };
+
+  // 关闭分享界面
+  const handleCloseShare = () => {
+    setShowShare(false);
+  };
 
   return (
     <div
@@ -114,7 +188,7 @@ export default function TheaterModePage() {
         </div>
 
         <button
-          onClick={() => window.location.href = `/achievement/${interest}`}
+          onClick={handleVideoComplete}
           style={{
             background: themeInfo.color,
             color: 'white',
@@ -135,7 +209,7 @@ export default function TheaterModePage() {
             e.currentTarget.style.boxShadow = 'none';
           }}
         >
-          🎯 完成学习
+          ✨ 体验魔法时刻
         </button>
       </div>
 
@@ -162,9 +236,21 @@ export default function TheaterModePage() {
         </a>
       </div>
 
+      {/* 魔法时刻庆祝 */}
+      <MagicMomentCelebration
+        magicMoment={magicMoment}
+        onClose={handleCloseMagicMoment}
+        onShare={handleShare}
+      />
 
-
-
+      {/* 分享界面 */}
+      {magicMoment && (
+        <MagicMomentShare
+          content={magicMoment.shareableContent}
+          isVisible={showShare}
+          onClose={handleCloseShare}
+        />
+      )}
     </div>
   );
 }
