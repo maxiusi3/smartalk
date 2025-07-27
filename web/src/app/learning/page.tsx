@@ -290,28 +290,64 @@ export default function LearningPage() {
                     {interest.description}
                   </p>
 
-                  {/* 开始学习按钮 */}
+                  {/* 操作按钮 */}
                   <div style={{
                     display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between'
+                    gap: '0.75rem',
+                    marginTop: '1rem'
                   }}>
-                    <span style={{
-                      color: getThemeColor(interest.theme),
-                      fontWeight: '500',
-                      fontSize: '0.9rem'
-                    }}>
-                      点击开始学习 →
-                    </span>
-                    <div style={{
-                      background: `${getThemeColor(interest.theme)}20`,
-                      color: getThemeColor(interest.theme),
-                      padding: '0.5rem',
-                      borderRadius: '0.5rem',
-                      fontSize: '1.2rem'
-                    }}>
-                      🎯
-                    </div>
+                    <button
+                      onClick={() => window.location.href = `/story-preview/${interest.id}`}
+                      style={{
+                        flex: 1,
+                        background: 'rgba(255, 255, 255, 0.9)',
+                        color: getThemeColor(interest.theme),
+                        border: `2px solid ${getThemeColor(interest.theme)}30`,
+                        borderRadius: '0.5rem',
+                        padding: '0.75rem 1rem',
+                        fontSize: '0.9rem',
+                        fontWeight: 'bold',
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = 'white';
+                        e.currentTarget.style.borderColor = getThemeColor(interest.theme);
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.9)';
+                        e.currentTarget.style.borderColor = `${getThemeColor(interest.theme)}30`;
+                      }}
+                    >
+                      📖 故事预览
+                    </button>
+
+                    <button
+                      onClick={() => handleInterestSelect(interest.id)}
+                      style={{
+                        flex: 2,
+                        background: `linear-gradient(135deg, ${getThemeColor(interest.theme)}, ${getThemeColor(interest.theme)}dd)`,
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '0.5rem',
+                        padding: '0.75rem 1rem',
+                        fontSize: '0.9rem',
+                        fontWeight: 'bold',
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease',
+                        boxShadow: `0 8px 25px ${getThemeColor(interest.theme)}30`
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                        e.currentTarget.style.boxShadow = `0 12px 35px ${getThemeColor(interest.theme)}40`;
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = `0 8px 25px ${getThemeColor(interest.theme)}30`;
+                      }}
+                    >
+                      🚀 直接开始
+                    </button>
                   </div>
 
                   {/* 装饰性背景 */}
