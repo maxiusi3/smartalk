@@ -1,4 +1,30 @@
+'use client'
+
+import { useEffect, useState } from 'react';
+import ProgressDashboard from '../components/ProgressDashboard';
+import { userSession } from '../lib/userSession';
+
 export default function Home() {
+  const [showProgress, setShowProgress] = useState(false);
+
+  useEffect(() => {
+    // 初始化用户会话并检查是否有学习进度
+    const initializeSession = async () => {
+      try {
+        const session = await userSession.initializeSession();
+        const progress = await userSession.getProgress();
+
+        // 如果用户有学习进度，显示进度仪表板
+        if (progress.length > 0) {
+          setShowProgress(true);
+        }
+      } catch (error) {
+        console.error('Failed to initialize session:', error);
+      }
+    };
+
+    initializeSession();
+  }, []);
   return (
     <div style={{
       minHeight: '100vh',
@@ -40,6 +66,17 @@ export default function Home() {
           通过故事线索收集和音画匹配训练，体验无字幕理解的魔法时刻
         </p>
       </div>
+
+      {/* 进度仪表板 */}
+      {showProgress && (
+        <div style={{
+          maxWidth: '1200px',
+          width: '100%',
+          marginBottom: '3rem'
+        }}>
+          <ProgressDashboard compact={true} showExportButton={false} />
+        </div>
+      )}
 
       {/* 功能卡片区域 */}
       <div style={{

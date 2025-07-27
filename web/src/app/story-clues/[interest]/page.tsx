@@ -2,46 +2,72 @@
 
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
+import { useProgress } from '../../../hooks/useProgress';
+import { userSession } from '../../../lib/userSession';
 
 interface Keyword {
   id: string;
   word: string;
   translation: string;
   pronunciation: string;
-  isUnlocked: boolean;
+  isUnlocked?: boolean; // 现在从进度系统获取
 }
 
 export default function StoryCluesPage() {
   const params = useParams();
-  const interest = params.interest as string;
+  const interest = params?.interest as string;
 
   const [keywords, setKeywords] = useState<Keyword[]>([]);
-  const [unlockedCount, setUnlockedCount] = useState(0);
   const [selectedKeyword, setSelectedKeyword] = useState<Keyword | null>(null);
 
-  useEffect(() => {
-    // 模拟关键词数据
-    const mockKeywords: Keyword[] = [
-      { id: '1', word: 'check-in', translation: '办理登机手续', pronunciation: '/tʃek ɪn/', isUnlocked: true },
-      { id: '2', word: 'boarding', translation: '登机', pronunciation: '/ˈbɔːrdɪŋ/', isUnlocked: true },
-      { id: '3', word: 'luggage', translation: '行李', pronunciation: '/ˈlʌɡɪdʒ/', isUnlocked: false },
-      { id: '4', word: 'departure', translation: '出发', pronunciation: '/dɪˈpɑːrtʃər/', isUnlocked: false },
-      { id: '5', word: 'arrival', translation: '到达', pronunciation: '/əˈraɪvəl/', isUnlocked: false },
-      { id: '6', word: 'passport', translation: '护照', pronunciation: '/ˈpæspɔːrt/', isUnlocked: false },
-      { id: '7', word: 'security', translation: '安检', pronunciation: '/sɪˈkjʊrəti/', isUnlocked: false },
-      { id: '8', word: 'gate', translation: '登机口', pronunciation: '/ɡeɪt/', isUnlocked: false },
-      { id: '9', word: 'delay', translation: '延误', pronunciation: '/dɪˈleɪ/', isUnlocked: false },
-      { id: '10', word: 'terminal', translation: '航站楼', pronunciation: '/ˈtɜːrmɪnəl/', isUnlocked: false },
-      { id: '11', word: 'ticket', translation: '机票', pronunciation: '/ˈtɪkɪt/', isUnlocked: false },
-      { id: '12', word: 'flight', translation: '航班', pronunciation: '/flaɪt/', isUnlocked: false },
-      { id: '13', word: 'customs', translation: '海关', pronunciation: '/ˈkʌstəmz/', isUnlocked: false },
-      { id: '14', word: 'baggage', translation: '行李', pronunciation: '/ˈbæɡɪdʒ/', isUnlocked: false },
-      { id: '15', word: 'journey', translation: '旅程', pronunciation: '/ˈdʒɜːrni/', isUnlocked: false }
-    ];
+  // 使用进度跟踪系统
+  const {
+    isLoading,
+    getStoryProgress,
+    isKeywordUnlocked,
+    getKeywordAttempts,
+    stats
+  } = useProgress();
 
-    setKeywords(mockKeywords);
-    setUnlockedCount(mockKeywords.filter(k => k.isUnlocked).length);
-  }, []);
+  // 模拟故事ID（基于兴趣主题）
+  const storyId = `story_${interest}`;
+
+  useEffect(() => {
+    // 初始化关键词数据
+    const initializeKeywords = async () => {
+      // 模拟关键词数据
+      const mockKeywords: Keyword[] = [
+        { id: '1', word: 'check-in', translation: '办理登机手续', pronunciation: '/tʃek ɪn/' },
+        { id: '2', word: 'boarding', translation: '登机', pronunciation: '/ˈbɔːrdɪŋ/' },
+        { id: '3', word: 'luggage', translation: '行李', pronunciation: '/ˈlʌɡɪdʒ/' },
+        { id: '4', word: 'departure', translation: '出发', pronunciation: '/dɪˈpɑːrtʃər/' },
+        { id: '5', word: 'arrival', translation: '到达', pronunciation: '/əˈraɪvəl/' },
+        { id: '6', word: 'passport', translation: '护照', pronunciation: '/ˈpæspɔːrt/' },
+        { id: '7', word: 'security', translation: '安检', pronunciation: '/sɪˈkjʊrəti/' },
+        { id: '8', word: 'gate', translation: '登机口', pronunciation: '/ɡeɪt/' },
+        { id: '9', word: 'delay', translation: '延误', pronunciation: '/dɪˈleɪ/' },
+        { id: '10', word: 'terminal', translation: '航站楼', pronunciation: '/ˈtɜːrmɪnəl/' },
+        { id: '11', word: 'ticket', translation: '机票', pronunciation: '/ˈtɪkɪt/' },
+        { id: '12', word: 'flight', translation: '航班', pronunciation: '/flaɪt/' },
+        { id: '13', word: 'customs', translation: '海关', pronunciation: '/ˈkʌstəmz/' },
+        { id: '14', word: 'baggage', translation: '行李', pronunciation: '/ˈbæɡɪdʒ/' },
+        { id: '15', word: 'journey', translation: '旅程', pronunciation: '/ˈdʒɜːrni/' }
+      ];
+
+      setKeywords(mockKeywords);
+
+      // 记录页面访问事件
+      await userSession.trackEvent('page_visit', {
+        page: 'story_clues',
+        interest,
+        storyId
+      });
+    };
+
+    if (interest) {
+      initializeKeywords();
+    }
+  }, [interest, storyId]);
 
   const getThemeInfo = (theme: string) => {
     switch (theme) {
@@ -58,12 +84,18 @@ export default function StoryCluesPage() {
 
   const themeInfo = getThemeInfo(interest);
 
+  // 获取当前故事的进度信息
+  const storyProgress = getStoryProgress(storyId, keywords);
+  const unlockedCount = storyProgress.unlockedKeywords;
+
   const handleKeywordClick = (keyword: Keyword) => {
-    if (keyword.isUnlocked) {
+    const isUnlocked = isKeywordUnlocked(storyId, keyword.id);
+
+    if (isUnlocked) {
       setSelectedKeyword(keyword);
     } else {
       // 导航到 VTPR 学习页面
-      window.location.href = `/learning/vtpr?keyword=${keyword.id}&interest=${interest}`;
+      window.location.href = `/learning/vtpr?keyword=${keyword.id}&interest=${interest}&storyId=${storyId}`;
     }
   };
 
@@ -191,26 +223,40 @@ export default function StoryCluesPage() {
           gap: '1.5rem',
           marginBottom: '2rem'
         }}>
-          {keywords.map((keyword, index) => (
-            <div
-              key={keyword.id}
-              style={{
-                background: keyword.isUnlocked
-                  ? 'rgba(255, 255, 255, 0.9)'
-                  : 'rgba(255, 255, 255, 0.4)',
-                borderRadius: '1rem',
-                padding: '1.5rem',
-                textAlign: 'center',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
-                border: keyword.isUnlocked
-                  ? `2px solid ${themeInfo.color}`
-                  : '2px solid transparent',
-                position: 'relative',
-                overflow: 'hidden'
-              }}
-              onClick={() => handleKeywordClick(keyword)}
-            >
+          {keywords.map((keyword, index) => {
+            const isUnlocked = isKeywordUnlocked(storyId, keyword.id);
+            const attempts = getKeywordAttempts(storyId, keyword.id);
+
+            return (
+              <div
+                key={keyword.id}
+                style={{
+                  background: isUnlocked
+                    ? 'rgba(255, 255, 255, 0.9)'
+                    : 'rgba(255, 255, 255, 0.4)',
+                  borderRadius: '1rem',
+                  padding: '1.5rem',
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  border: isUnlocked
+                    ? `2px solid ${themeInfo.color}`
+                    : '2px solid transparent',
+                  position: 'relative',
+                  overflow: 'hidden'
+                }}
+                onClick={() => handleKeywordClick(keyword)}
+                onMouseEnter={(e) => {
+                  if (isUnlocked) {
+                    e.currentTarget.style.transform = 'translateY(-5px)';
+                    e.currentTarget.style.boxShadow = '0 10px 25px rgba(0, 0, 0, 0.15)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
+              >
               {/* 解锁状态指示器 */}
               <div style={{
                 position: 'absolute',
@@ -218,7 +264,7 @@ export default function StoryCluesPage() {
                 right: '0.5rem',
                 fontSize: '1.2rem'
               }}>
-                {keyword.isUnlocked ? '🔓' : '🔒'}
+                {isUnlocked ? '🔓' : '🔒'}
               </div>
 
               {/* 序号 */}
@@ -226,7 +272,7 @@ export default function StoryCluesPage() {
                 position: 'absolute',
                 top: '0.5rem',
                 left: '0.5rem',
-                background: keyword.isUnlocked ? themeInfo.color : '#9ca3af',
+                background: isUnlocked ? themeInfo.color : '#9ca3af',
                 color: 'white',
                 width: '24px',
                 height: '24px',
@@ -245,13 +291,13 @@ export default function StoryCluesPage() {
                 <h4 style={{
                   fontSize: '1.2rem',
                   fontWeight: 'bold',
-                  color: keyword.isUnlocked ? '#1f2937' : '#9ca3af',
+                  color: isUnlocked ? '#1f2937' : '#9ca3af',
                   marginBottom: '0.5rem'
                 }}>
-                  {keyword.isUnlocked ? keyword.word : '???'}
+                  {isUnlocked ? keyword.word : '???'}
                 </h4>
 
-                {keyword.isUnlocked && (
+                {isUnlocked && (
                   <>
                     <p style={{
                       color: '#6b7280',
@@ -267,10 +313,20 @@ export default function StoryCluesPage() {
                     }}>
                       {keyword.pronunciation}
                     </p>
+                    {attempts > 0 && (
+                      <p style={{
+                        color: themeInfo.color,
+                        fontSize: '0.7rem',
+                        marginTop: '0.25rem',
+                        fontWeight: 'bold'
+                      }}>
+                        尝试次数: {attempts}
+                      </p>
+                    )}
                   </>
                 )}
 
-                {!keyword.isUnlocked && (
+                {!isUnlocked && (
                   <p style={{
                     color: '#9ca3af',
                     fontSize: '0.9rem'
@@ -281,7 +337,7 @@ export default function StoryCluesPage() {
               </div>
 
               {/* 解锁动画效果 */}
-              {keyword.isUnlocked && (
+              {isUnlocked && (
                 <div style={{
                   position: 'absolute',
                   bottom: '0.5rem',
@@ -293,7 +349,8 @@ export default function StoryCluesPage() {
                 </div>
               )}
             </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* 行动按钮 */}

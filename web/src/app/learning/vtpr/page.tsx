@@ -2,6 +2,8 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { useProgress } from '../../../hooks/useProgress';
+import { userSession } from '../../../lib/userSession';
 
 interface VideoOption {
   id: string;
@@ -14,7 +16,8 @@ function VTPRContent() {
   const searchParams = useSearchParams();
   const keyword = searchParams?.get('keyword');
   const interest = searchParams?.get('interest');
-  
+  const storyId = searchParams?.get('storyId') || `story_${interest}`;
+
   const [currentKeyword, setCurrentKeyword] = useState('check-in');
   const [currentTranslation, setCurrentTranslation] = useState('办理登机手续');
   const [videoOptions, setVideoOptions] = useState<VideoOption[]>([]);
@@ -22,6 +25,9 @@ function VTPRContent() {
   const [showResult, setShowResult] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
   const [attempts, setAttempts] = useState(0);
+
+  // 使用进度跟踪系统
+  const { saveKeywordProgress, getKeywordAttempts } = useProgress();
 
   useEffect(() => {
     // 模拟视频选项数据
@@ -55,18 +61,41 @@ function VTPRContent() {
     setVideoOptions(mockOptions);
   }, []);
 
-  const handleOptionSelect = (optionId: string) => {
+  const handleOptionSelect = async (optionId: string) => {
     setSelectedOption(optionId);
     const option = videoOptions.find(opt => opt.id === optionId);
     if (option) {
       setIsCorrect(option.isCorrect);
       setShowResult(true);
       setAttempts(prev => prev + 1);
+
+      // 保存学习进度
+      if (keyword && storyId) {
+        await saveKeywordProgress(storyId, keyword, option.isCorrect, option.isCorrect);
+
+        // 记录学习事件
+        await userSession.trackEvent('vtpr_attempt', {
+          keyword,
+          storyId,
+          interest,
+          selectedOption: optionId,
+          isCorrect: option.isCorrect,
+          attempts: attempts + 1
+        });
+      }
     }
   };
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (isCorrect) {
+      // 记录成功完成事件
+      await userSession.trackEvent('keyword_unlocked', {
+        keyword,
+        storyId,
+        interest,
+        totalAttempts: attempts
+      });
+
       // 返回故事线索页面，显示解锁成功
       window.location.href = `/story-clues/${interest}?unlocked=${keyword}`;
     } else {
