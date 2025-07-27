@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { useProgress } from '../../../hooks/useProgress';
 import { userSession } from '../../../lib/userSession';
+import { contentManager, KeywordContent } from '../../../lib/contentManager';
 
 interface Keyword {
   id: string;
@@ -35,26 +36,34 @@ export default function StoryCluesPage() {
   useEffect(() => {
     // 初始化关键词数据
     const initializeKeywords = async () => {
-      // 模拟关键词数据
-      const mockKeywords: Keyword[] = [
-        { id: '1', word: 'check-in', translation: '办理登机手续', pronunciation: '/tʃek ɪn/' },
-        { id: '2', word: 'boarding', translation: '登机', pronunciation: '/ˈbɔːrdɪŋ/' },
-        { id: '3', word: 'luggage', translation: '行李', pronunciation: '/ˈlʌɡɪdʒ/' },
-        { id: '4', word: 'departure', translation: '出发', pronunciation: '/dɪˈpɑːrtʃər/' },
-        { id: '5', word: 'arrival', translation: '到达', pronunciation: '/əˈraɪvəl/' },
-        { id: '6', word: 'passport', translation: '护照', pronunciation: '/ˈpæspɔːrt/' },
-        { id: '7', word: 'security', translation: '安检', pronunciation: '/sɪˈkjʊrəti/' },
-        { id: '8', word: 'gate', translation: '登机口', pronunciation: '/ɡeɪt/' },
-        { id: '9', word: 'delay', translation: '延误', pronunciation: '/dɪˈleɪ/' },
-        { id: '10', word: 'terminal', translation: '航站楼', pronunciation: '/ˈtɜːrmɪnəl/' },
-        { id: '11', word: 'ticket', translation: '机票', pronunciation: '/ˈtɪkɪt/' },
-        { id: '12', word: 'flight', translation: '航班', pronunciation: '/flaɪt/' },
-        { id: '13', word: 'customs', translation: '海关', pronunciation: '/ˈkʌstəmz/' },
-        { id: '14', word: 'baggage', translation: '行李', pronunciation: '/ˈbæɡɪdʒ/' },
-        { id: '15', word: 'journey', translation: '旅程', pronunciation: '/ˈdʒɜːrni/' }
-      ];
+      try {
+        // 从内容管理器获取关键词数据
+        const storyKeywords = contentManager.getStoryKeywords(interest);
 
-      setKeywords(mockKeywords);
+        // 转换为组件需要的格式
+        const formattedKeywords: Keyword[] = storyKeywords.map(keyword => ({
+          id: keyword.id,
+          word: keyword.word,
+          translation: keyword.translation,
+          pronunciation: keyword.pronunciation
+        }));
+
+        setKeywords(formattedKeywords);
+
+        // 预加载内容
+        await contentManager.preloadContent(interest);
+      } catch (error) {
+        console.error('Failed to load keywords:', error);
+        // 如果加载失败，使用备用数据
+        const fallbackKeywords: Keyword[] = [
+          { id: '1', word: 'learning', translation: '学习', pronunciation: '/ˈlɜːrnɪŋ/' },
+          { id: '2', word: 'practice', translation: '练习', pronunciation: '/ˈpræktɪs/' },
+          { id: '3', word: 'improve', translation: '提高', pronunciation: '/ɪmˈpruːv/' },
+          { id: '4', word: 'understand', translation: '理解', pronunciation: '/ˌʌndərˈstænd/' },
+          { id: '5', word: 'progress', translation: '进步', pronunciation: '/ˈprɑːɡres/' }
+        ];
+        setKeywords(fallbackKeywords);
+      }
 
       // 记录页面访问事件
       if (typeof window !== 'undefined') {

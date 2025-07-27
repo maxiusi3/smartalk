@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { contentManager, VTPRExercise } from '../../../lib/contentManager';
 import { useProgress } from '../../../hooks/useProgress';
 import { userSession } from '../../../lib/userSession';
 import VTPRVideoOption from '../../../components/VTPRVideoOption';
@@ -19,48 +20,78 @@ function VTPRContent() {
   const interest = searchParams?.get('interest');
   const storyId = searchParams?.get('storyId') || `story_${interest}`;
 
-  const [currentKeyword, setCurrentKeyword] = useState('check-in');
-  const [currentTranslation, setCurrentTranslation] = useState('办理登机手续');
+  const [currentExercise, setCurrentExercise] = useState<VTPRExercise | null>(null);
+  const [exerciseIndex, setExerciseIndex] = useState(0);
   const [videoOptions, setVideoOptions] = useState<VideoOption[]>([]);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [showResult, setShowResult] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
   const [attempts, setAttempts] = useState(0);
+  const [loading, setLoading] = useState(true);
 
   // 使用进度跟踪系统
-  const { saveKeywordProgress, getKeywordAttempts } = useProgress();
+  const { saveKeywordProgress } = useProgress();
 
   useEffect(() => {
-    // 模拟视频选项数据
-    const mockOptions: VideoOption[] = [
-      {
-        id: '1',
-        videoUrl: 'https://sample-videos.com/zip/10/mp4/SampleVideo_360x240_1mb.mp4',
-        isCorrect: true,
-        description: '机场办理登机手续场景'
-      },
-      {
-        id: '2',
-        videoUrl: 'https://sample-videos.com/zip/10/mp4/SampleVideo_360x240_2mb.mp4',
-        isCorrect: false,
-        description: '餐厅用餐场景'
-      },
-      {
-        id: '3',
-        videoUrl: 'https://sample-videos.com/zip/10/mp4/SampleVideo_360x240_5mb.mp4',
-        isCorrect: false,
-        description: '购物场景'
-      },
-      {
-        id: '4',
-        videoUrl: 'https://sample-videos.com/zip/10/mp4/SampleVideo_640x360_1mb.mp4',
-        isCorrect: false,
-        description: '办公室场景'
-      }
-    ];
+    // 加载 vTPR 练习数据
+    const loadExercise = async () => {
+      if (!interest) return;
 
-    setVideoOptions(mockOptions);
-  }, []);
+      try {
+        const exercises = contentManager.getVTPRExercises(interest);
+        const currentEx = exercises[exerciseIndex];
+
+        if (currentEx) {
+          setCurrentExercise(currentEx);
+
+          // 转换为组件需要的格式
+          const options: VideoOption[] = currentEx.options.map(option => ({
+            id: option.id,
+            videoUrl: option.imageUrl, // 使用图片作为视频占位符
+            isCorrect: option.isCorrect,
+            description: option.isCorrect ? `正确：${currentEx.translation}` : '错误选项'
+          }));
+
+          setVideoOptions(options);
+        } else {
+          // 如果没有练习数据，使用备用数据
+          const fallbackOptions: VideoOption[] = [
+            {
+              id: '1',
+              videoUrl: '/images/placeholder/correct.jpg',
+              isCorrect: true,
+              description: '正确选项'
+            },
+            {
+              id: '2',
+              videoUrl: '/images/placeholder/wrong1.jpg',
+              isCorrect: false,
+              description: '错误选项1'
+            },
+            {
+              id: '3',
+              videoUrl: '/images/placeholder/wrong2.jpg',
+              isCorrect: false,
+              description: '错误选项2'
+            },
+            {
+              id: '4',
+              videoUrl: '/images/placeholder/wrong3.jpg',
+              isCorrect: false,
+              description: '错误选项3'
+            }
+          ];
+          setVideoOptions(fallbackOptions);
+        }
+      } catch (error) {
+        console.error('Failed to load vTPR exercise:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadExercise();
+  }, [interest, exerciseIndex]);
 
   const handleOptionSelect = async (optionId: string) => {
     setSelectedOption(optionId);
@@ -153,7 +184,7 @@ function VTPRContent() {
               color: '#d1d5db',
               fontSize: '1.1rem'
             }}>
-              选择与单词 "{currentKeyword}" 最匹配的视频场景
+              选择与单词 "{currentExercise?.keyword || 'loading...'}" 最匹配的视频场景
             </p>
           </div>
           <a
@@ -189,14 +220,14 @@ function VTPRContent() {
             color: themeColor,
             marginBottom: '1rem'
           }}>
-            {currentKeyword}
+            {currentExercise?.keyword || 'Loading...'}
           </h2>
           <p style={{
             fontSize: '1.5rem',
             color: '#e5e7eb',
             marginBottom: '1rem'
           }}>
-            {currentTranslation}
+            {currentExercise?.translation || '加载中...'}
           </p>
           <p style={{
             color: '#9ca3af',
@@ -269,8 +300,8 @@ function VTPRContent() {
               color: '#d1d5db',
               marginBottom: '2rem'
             }}>
-              {isCorrect 
-                ? `你成功解锁了单词 "${currentKeyword}" 的故事线索！`
+              {isCorrect
+                ? `你成功解锁了单词 "${currentExercise?.keyword}" 的故事线索！`
                 : '不要灰心，再试一次吧！每次尝试都是学习的机会。'
               }
             </p>

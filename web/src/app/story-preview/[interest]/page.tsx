@@ -2,11 +2,14 @@
 
 import { useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
+import { contentManager, StoryContent } from '../../../lib/contentManager';
 
 export default function StoryPreviewPage() {
   const params = useParams();
   const interest = params?.interest as string;
   const [isMobile, setIsMobile] = useState(false);
+  const [storyContent, setStoryContent] = useState<StoryContent | null>(null);
+  const [loading, setLoading] = useState(true);
 
   // 检测移动设备
   useEffect(() => {
@@ -20,73 +23,124 @@ export default function StoryPreviewPage() {
     }
   }, []);
 
+  // 加载故事内容
+  useEffect(() => {
+    const loadStoryContent = async () => {
+      if (!interest) return;
+
+      try {
+        const story = contentManager.getStory(interest);
+        setStoryContent(story);
+
+        // 预加载内容以优化用户体验
+        if (story) {
+          await contentManager.preloadContent(interest);
+        }
+      } catch (error) {
+        console.error('Failed to load story content:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadStoryContent();
+  }, [interest]);
+
   // 获取主题信息
   const getThemeInfo = (theme: string) => {
     switch (theme) {
       case 'travel':
-        return {
-          name: '旅行英语',
-          icon: '✈️',
-          color: '#3b82f6',
-          story: {
-            title: '巴黎咖啡馆初遇',
-            setting: '在巴黎的一个温馨咖啡馆里',
-            characters: ['Alex - 中国游客', 'Emma - 法国咖啡师'],
-            preview: '一个关于文化交流和温暖人情的美好故事。Alex 第一次来到巴黎，在当地咖啡馆遇到了友善的咖啡师 Emma。通过简单的对话，他们建立了跨越语言和文化的友谊...',
-            duration: '60秒',
-            difficulty: '初级',
-            keywords: 15
-          }
-        };
+        return { name: '旅行英语', icon: '✈️', color: '#3b82f6' };
       case 'movie':
-        return {
-          name: '电影对话',
-          icon: '🎬',
-          color: '#8b5cf6',
-          story: {
-            title: '制片厂的一天',
-            setting: '在好莱坞的电影制片厂',
-            characters: ['Sarah - 制片人', 'Mike - 导演'],
-            preview: '深入电影制作的幕后世界。Sarah 和 Mike 正在为新项目进行紧张的筹备工作，他们需要在有限的时间内做出重要决定，体验真实的好莱坞工作节奏...',
-            duration: '75秒',
-            difficulty: '中级',
-            keywords: 18
-          }
-        };
+        return { name: '电影对话', icon: '🎬', color: '#8b5cf6' };
       case 'workplace':
-        return {
-          name: '职场沟通',
-          icon: '💼',
-          color: '#10b981',
-          story: {
-            title: '项目启动会议',
-            setting: '在现代化的办公室会议室',
-            characters: ['Lisa - 项目经理', 'David - 团队成员'],
-            preview: '一个关于团队协作和职场沟通的故事。Lisa 正在主持新项目的启动会议，需要与团队成员协调各项工作安排，展现专业的职场英语交流技巧...',
-            duration: '90秒',
-            difficulty: '高级',
-            keywords: 20
-          }
-        };
+        return { name: '职场沟通', icon: '💼', color: '#10b981' };
       default:
-        return {
-          name: '学习',
-          icon: '📚',
-          color: '#6b7280',
-          story: {
-            title: '学习之旅',
-            setting: '在学习的世界里',
-            characters: ['学习者'],
-            preview: '开始你的学习之旅...',
-            duration: '60秒',
-            difficulty: '初级',
-            keywords: 15
-          }
-        };
+        return { name: '学习', icon: '📚', color: '#6b7280' };
     }
   };
 
   const themeInfo = getThemeInfo(interest || 'travel');
+
+  // 加载状态
+  if (loading) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        background: `linear-gradient(135deg, ${themeInfo.color}20 0%, ${themeInfo.color}10 100%)`,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontFamily: 'system-ui, sans-serif'
+      }}>
+        <div style={{
+          textAlign: 'center',
+          background: 'rgba(255, 255, 255, 0.95)',
+          borderRadius: '1rem',
+          padding: '3rem',
+          boxShadow: '0 20px 40px rgba(0, 0, 0, 0.1)'
+        }}>
+          <div style={{
+            fontSize: '3rem',
+            marginBottom: '1rem',
+            animation: 'spin 1s linear infinite'
+          }}>
+            🔄
+          </div>
+          <p style={{
+            fontSize: '1.1rem',
+            color: '#6b7280'
+          }}>
+            正在加载故事内容...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // 内容未找到
+  if (!storyContent) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        background: `linear-gradient(135deg, ${themeInfo.color}20 0%, ${themeInfo.color}10 100%)`,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontFamily: 'system-ui, sans-serif'
+      }}>
+        <div style={{
+          textAlign: 'center',
+          background: 'rgba(255, 255, 255, 0.95)',
+          borderRadius: '1rem',
+          padding: '3rem',
+          boxShadow: '0 20px 40px rgba(0, 0, 0, 0.1)'
+        }}>
+          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>😔</div>
+          <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: '#374151' }}>
+            故事内容未找到
+          </h2>
+          <p style={{ color: '#6b7280', marginBottom: '2rem' }}>
+            请返回学习中心选择其他主题
+          </p>
+          <a
+            href="/learning"
+            style={{
+              display: 'inline-block',
+              background: themeInfo.color,
+              color: 'white',
+              padding: '0.75rem 1.5rem',
+              borderRadius: '0.5rem',
+              textDecoration: 'none',
+              fontWeight: 'bold'
+            }}
+          >
+            返回学习中心
+          </a>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{
@@ -168,7 +222,7 @@ export default function StoryPreviewPage() {
                 color: '#1f2937',
                 marginBottom: '0.5rem'
               }}>
-                {themeInfo.story.title}
+                {storyContent.title}
               </h1>
               <p style={{
                 color: themeInfo.color,
@@ -195,7 +249,7 @@ export default function StoryPreviewPage() {
               lineHeight: 1.6,
               marginBottom: '1.5rem'
             }}>
-              {themeInfo.story.setting}
+              {storyContent.setting}
             </p>
 
             <h3 style={{
@@ -211,7 +265,7 @@ export default function StoryPreviewPage() {
               padding: 0,
               marginBottom: '1.5rem'
             }}>
-              {themeInfo.story.characters.map((character, index) => (
+              {storyContent.characters.map((character, index) => (
                 <li key={index} style={{
                   color: '#6b7280',
                   marginBottom: '0.5rem',
@@ -240,7 +294,7 @@ export default function StoryPreviewPage() {
               color: '#6b7280',
               lineHeight: 1.6
             }}>
-              {themeInfo.story.preview}
+              {storyContent.preview}
             </p>
           </div>
 
@@ -264,7 +318,7 @@ export default function StoryPreviewPage() {
                 color: themeInfo.color,
                 marginBottom: '0.25rem'
               }}>
-                {themeInfo.story.duration}
+                {storyContent.duration}
               </div>
               <div style={{
                 fontSize: '0.8rem',
@@ -287,7 +341,8 @@ export default function StoryPreviewPage() {
                 color: themeInfo.color,
                 marginBottom: '0.25rem'
               }}>
-                {themeInfo.story.difficulty}
+                {storyContent.difficulty === 'beginner' ? '初级' :
+                 storyContent.difficulty === 'intermediate' ? '中级' : '高级'}
               </div>
               <div style={{
                 fontSize: '0.8rem',
@@ -311,7 +366,7 @@ export default function StoryPreviewPage() {
                 color: themeInfo.color,
                 marginBottom: '0.25rem'
               }}>
-                {themeInfo.story.keywords}
+                {storyContent.keywordCount}
               </div>
               <div style={{
                 fontSize: '0.8rem',
