@@ -71,18 +71,22 @@ function VTPRContent() {
       setAttempts(prev => prev + 1);
 
       // 保存学习进度
-      if (keyword && storyId) {
-        await saveKeywordProgress(storyId, keyword, option.isCorrect, option.isCorrect);
+      if (keyword && storyId && typeof window !== 'undefined') {
+        try {
+          await saveKeywordProgress(storyId, keyword, option.isCorrect, option.isCorrect);
 
-        // 记录学习事件
-        await userSession.trackEvent('vtpr_attempt', {
-          keyword,
-          storyId,
-          interest,
-          selectedOption: optionId,
-          isCorrect: option.isCorrect,
-          attempts: attempts + 1
-        });
+          // 记录学习事件
+          await userSession.trackEvent('vtpr_attempt', {
+            keyword,
+            storyId,
+            interest,
+            selectedOption: optionId,
+            isCorrect: option.isCorrect,
+            attempts: attempts + 1
+          });
+        } catch (error) {
+          console.error('Failed to save progress:', error);
+        }
       }
     }
   };

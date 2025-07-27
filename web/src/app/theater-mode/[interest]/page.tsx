@@ -20,11 +20,17 @@ export default function TheaterModePage() {
   useEffect(() => {
     // 记录剧场模式访问
     const trackVisit = async () => {
-      await userSession.trackEvent('theater_mode_visit', {
-        interest,
-        videoId,
-        timestamp: new Date().toISOString()
-      });
+      if (typeof window !== 'undefined') {
+        try {
+          await userSession.trackEvent('theater_mode_visit', {
+            interest,
+            videoId,
+            timestamp: new Date().toISOString()
+          });
+        } catch (error) {
+          console.error('Failed to track theater visit:', error);
+        }
+      }
     };
 
     if (interest) {

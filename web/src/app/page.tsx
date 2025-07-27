@@ -11,6 +11,9 @@ export default function Home() {
     // 初始化用户会话并检查是否有学习进度
     const initializeSession = async () => {
       try {
+        // 确保在客户端环境中运行
+        if (typeof window === 'undefined') return;
+
         const session = await userSession.initializeSession();
         const progress = await userSession.getProgress();
 

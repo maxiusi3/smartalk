@@ -25,20 +25,28 @@ export default function LearningPage() {
 
   // 处理兴趣选择
   const handleInterestSelect = async (interestId: string) => {
-    setSelectedInterest(interestId);
-    setShowPreloader(true);
+    try {
+      setSelectedInterest(interestId);
+      setShowPreloader(true);
 
-    // 记录兴趣选择事件
-    await userSession.trackEvent('interest_selected', {
-      interestId,
-      timestamp: new Date().toISOString()
-    });
+      // 确保在客户端环境中运行
+      if (typeof window === 'undefined') return;
 
-    // 更新用户选择的兴趣
-    await userSession.updateSelectedInterest(interestId);
+      // 记录兴趣选择事件
+      await userSession.trackEvent('interest_selected', {
+        interestId,
+        timestamp: new Date().toISOString()
+      });
 
-    // 开始预加载内容
-    await contentPreloader.preloadLearningContent(interestId);
+      // 更新用户选择的兴趣
+      await userSession.updateSelectedInterest(interestId);
+
+      // 开始预加载内容
+      await contentPreloader.preloadLearningContent(interestId);
+    } catch (error) {
+      console.error('Failed to handle interest selection:', error);
+      setShowPreloader(false);
+    }
   };
 
   // 预加载完成处理

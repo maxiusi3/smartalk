@@ -57,11 +57,17 @@ export default function StoryCluesPage() {
       setKeywords(mockKeywords);
 
       // 记录页面访问事件
-      await userSession.trackEvent('page_visit', {
-        page: 'story_clues',
-        interest,
-        storyId
-      });
+      if (typeof window !== 'undefined') {
+        try {
+          await userSession.trackEvent('page_visit', {
+            page: 'story_clues',
+            interest,
+            storyId
+          });
+        } catch (error) {
+          console.error('Failed to track page visit:', error);
+        }
+      }
     };
 
     if (interest) {
