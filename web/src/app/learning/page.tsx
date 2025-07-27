@@ -382,13 +382,15 @@ export default function LearningPage() {
         onComplete={handlePreloadComplete}
       />
 
-      {/* CSS 动画 */}
-      <style jsx>{`
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-      `}</style>
+      {/* CSS 动画通过内联样式实现 */}
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `
+      }} />
     </div>
   );
 }

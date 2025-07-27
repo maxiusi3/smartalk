@@ -378,30 +378,20 @@ export default function PreloadIndicator({
         )}
       </div>
 
-      {/* CSS 动画 */}
-      <style jsx>{`
-        @keyframes bounce {
-          0%, 20%, 50%, 80%, 100% {
-            transform: translateY(0);
+      {/* CSS 动画通过内联样式实现 */}
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
           }
-          40% {
-            transform: translateY(-10px);
+          @keyframes pulse {
+            0%, 100% { opacity: 0.4; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.2); }
           }
-          60% {
-            transform: translateY(-5px);
-          }
-        }
-        @keyframes pulse {
-          0%, 100% {
-            opacity: 0.4;
-            transform: scale(0.8);
-          }
-          50% {
-            opacity: 1;
-            transform: scale(1.2);
-          }
-        }
-      `}</style>
+        `
+      }} />
     </div>
   );
 }
