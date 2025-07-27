@@ -1,11 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react';
-import ProgressDashboard from '../components/ProgressDashboard';
-import { userSession } from '../lib/userSession';
 
 export default function Home() {
-  const [showProgress, setShowProgress] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
   // 检测移动设备
@@ -18,28 +15,6 @@ export default function Home() {
       window.addEventListener('resize', checkMobile);
       return () => window.removeEventListener('resize', checkMobile);
     }
-  }, []);
-
-  useEffect(() => {
-    // 初始化用户会话并检查是否有学习进度
-    const initializeSession = async () => {
-      try {
-        // 确保在客户端环境中运行
-        if (typeof window === 'undefined') return;
-
-        const session = await userSession.initializeSession();
-        const progress = await userSession.getProgress();
-
-        // 如果用户有学习进度，显示进度仪表板
-        if (progress.length > 0) {
-          setShowProgress(true);
-        }
-      } catch (error) {
-        console.error('Failed to initialize session:', error);
-      }
-    };
-
-    initializeSession();
   }, []);
   return (
     <div style={{
@@ -88,16 +63,7 @@ export default function Home() {
         </p>
       </div>
 
-      {/* 进度仪表板 */}
-      {showProgress && (
-        <div style={{
-          maxWidth: '1200px',
-          width: '100%',
-          marginBottom: '3rem'
-        }}>
-          <ProgressDashboard compact={true} showExportButton={false} />
-        </div>
-      )}
+
 
       {/* 功能卡片区域 */}
       <div style={{
