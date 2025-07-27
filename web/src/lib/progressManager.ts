@@ -250,7 +250,30 @@ class ProgressManager {
 
   // 获取用户进度
   getUserProgress(): UserProgress | null {
+    // 如果没有用户进度，自动初始化一个匿名用户
+    if (!this.userProgress) {
+      this.initializeAnonymousUser();
+    }
     return this.userProgress;
+  }
+
+  // 初始化匿名用户
+  private async initializeAnonymousUser(): Promise<void> {
+    const deviceId = this.generateDeviceId();
+    await this.initializeUser(deviceId);
+  }
+
+  // 生成设备ID
+  private generateDeviceId(): string {
+    if (typeof window !== 'undefined') {
+      let deviceId = localStorage.getItem('smartalk_device_id');
+      if (!deviceId) {
+        deviceId = `device_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        localStorage.setItem('smartalk_device_id', deviceId);
+      }
+      return deviceId;
+    }
+    return `device_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
   // 开始学习会话
