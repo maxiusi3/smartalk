@@ -2,10 +2,28 @@
 
 import { useEffect, useState } from 'react';
 import ProgressDashboard from '../components/ProgressDashboard';
+import MobileNavigation from '../components/MobileNavigation';
 import { userSession } from '../lib/userSession';
+import { useMobile } from '../hooks/useMobile';
 
 export default function Home() {
   const [showProgress, setShowProgress] = useState(false);
+  const {
+    isMobile,
+    getResponsiveStyles,
+    getResponsiveFontSize,
+    getResponsiveSpacing,
+    getContainerMaxWidth,
+    getSafeAreaStyles
+  } = useMobile();
+
+  // 导航项配置
+  const navigationItems = [
+    { id: 'home', label: '首页', icon: '🏠', href: '/', isActive: true },
+    { id: 'learning', label: '学习', icon: '📚', href: '/learning' },
+    { id: 'progress', label: '进度', icon: '📊', href: '/progress' },
+    { id: 'profile', label: '我的', icon: '👤', href: '/profile' }
+  ];
 
   useEffect(() => {
     // 初始化用户会话并检查是否有学习进度
@@ -29,34 +47,57 @@ export default function Home() {
     initializeSession();
   }, []);
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      fontFamily: 'system-ui, sans-serif',
-      color: 'white',
-      padding: '2rem'
-    }}>
+    <>
+      {/* 移动端导航 */}
+      <MobileNavigation
+        items={navigationItems}
+        currentPath="/"
+        title="SmarTalk"
+      />
+
+      <div style={{
+        ...getResponsiveStyles({
+          default: {
+            minHeight: '100vh',
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontFamily: 'system-ui, sans-serif',
+            color: 'white',
+            padding: '2rem'
+          },
+          mobile: {
+            padding: getResponsiveSpacing(32),
+            paddingTop: getResponsiveSpacing(80), // 为移动端导航留空间
+            paddingBottom: getResponsiveSpacing(80)
+          }
+        }),
+        ...getSafeAreaStyles()
+      }}>
       {/* 主标题区域 */}
       <div style={{
         textAlign: 'center',
-        marginBottom: '3rem'
+        marginBottom: getResponsiveSpacing(48),
+        maxWidth: getContainerMaxWidth(),
+        width: '100%'
       }}>
         <h1 style={{
-          fontSize: '3.5rem',
+          fontSize: getResponsiveFontSize(56),
           fontWeight: 'bold',
-          marginBottom: '1rem',
-          textShadow: '0 2px 4px rgba(0,0,0,0.3)'
+          marginBottom: getResponsiveSpacing(16),
+          textShadow: '0 2px 4px rgba(0,0,0,0.3)',
+          lineHeight: 1.2
         }}>
           SmarTalk - 开芯说
         </h1>
         <p style={{
-          fontSize: '1.5rem',
+          fontSize: getResponsiveFontSize(24),
           opacity: 0.9,
-          marginBottom: '2rem'
+          marginBottom: getResponsiveSpacing(32),
+          lineHeight: 1.4,
+          padding: isMobile ? '0 1rem' : '0'
         }}>
           神经沉浸法英语学习平台
         </p>
@@ -216,5 +257,6 @@ export default function Home() {
         </p>
       </div>
     </div>
+    </>
   );
 }

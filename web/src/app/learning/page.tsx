@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import PreloadIndicator from '../../components/PreloadIndicator';
+import MobileNavigation from '../../components/MobileNavigation';
 import { contentPreloader } from '../../lib/contentPreloader';
 import { userSession } from '../../lib/userSession';
+import { useMobile } from '../../hooks/useMobile';
 
 interface Interest {
   id: string;
@@ -18,6 +20,25 @@ export default function LearningPage() {
   const [error, setError] = useState<string | null>(null);
   const [selectedInterest, setSelectedInterest] = useState<string | null>(null);
   const [showPreloader, setShowPreloader] = useState(false);
+
+  // 移动端适配
+  const {
+    isMobile,
+    getResponsiveStyles,
+    getResponsiveFontSize,
+    getResponsiveSpacing,
+    getGridColumns,
+    getContainerMaxWidth,
+    getSafeAreaStyles
+  } = useMobile();
+
+  // 导航项配置
+  const navigationItems = [
+    { id: 'home', label: '首页', icon: '🏠', href: '/' },
+    { id: 'learning', label: '学习', icon: '📚', href: '/learning', isActive: true },
+    { id: 'progress', label: '进度', icon: '📊', href: '/progress' },
+    { id: 'profile', label: '我的', icon: '👤', href: '/profile' }
+  ];
 
   useEffect(() => {
     fetchInterests();
@@ -119,31 +140,54 @@ export default function LearningPage() {
   }
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg, #f0f9ff 0%, #e0e7ff 100%)',
-      fontFamily: 'system-ui, sans-serif',
-      padding: '2rem'
-    }}>
+    <>
+      {/* 移动端导航 */}
+      <MobileNavigation
+        items={navigationItems}
+        currentPath="/learning"
+        title="学习中心"
+      />
+
+      <div style={{
+        ...getResponsiveStyles({
+          default: {
+            minHeight: '100vh',
+            background: 'linear-gradient(135deg, #f0f9ff 0%, #e0e7ff 100%)',
+            fontFamily: 'system-ui, sans-serif',
+            padding: '2rem'
+          },
+          mobile: {
+            padding: getResponsiveSpacing(16),
+            paddingTop: getResponsiveSpacing(80),
+            paddingBottom: getResponsiveSpacing(80)
+          }
+        }),
+        ...getSafeAreaStyles()
+      }}>
       {/* 头部导航 */}
       <div style={{
         display: 'flex',
-        alignItems: 'center',
+        alignItems: isMobile ? 'flex-start' : 'center',
         justifyContent: 'space-between',
-        marginBottom: '3rem',
-        maxWidth: '1200px',
-        margin: '0 auto 3rem'
+        flexDirection: isMobile ? 'column' : 'row',
+        marginBottom: getResponsiveSpacing(48),
+        maxWidth: getContainerMaxWidth(),
+        margin: `0 auto ${getResponsiveSpacing(48)}px`,
+        gap: isMobile ? getResponsiveSpacing(16) : 0
       }}>
-        <div>
+        <div style={{ width: '100%' }}>
           <h1 style={{
-            fontSize: '2.5rem',
+            fontSize: getResponsiveFontSize(40),
             fontWeight: 'bold',
             color: '#1f2937',
-            marginBottom: '0.5rem'
+            marginBottom: getResponsiveSpacing(8),
+            textAlign: isMobile ? 'center' : 'left'
           }}>学习中心</h1>
           <p style={{
             color: '#6b7280',
-            fontSize: '1.1rem'
+            fontSize: getResponsiveFontSize(18),
+            textAlign: isMobile ? 'center' : 'left',
+            lineHeight: 1.5
           }}>选择你感兴趣的主题，开始神经沉浸法学习之旅</p>
         </div>
         <a
@@ -200,9 +244,16 @@ export default function LearningPage() {
             {/* 兴趣主题卡片 */}
             <div style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))',
-              gap: '2rem',
-              marginBottom: '3rem'
+              gridTemplateColumns: `repeat(${getGridColumns({
+                mobile: 1,
+                tablet: 2,
+                desktop: 3,
+                default: 2
+              })}, 1fr)`,
+              gap: getResponsiveSpacing(32),
+              marginBottom: getResponsiveSpacing(48),
+              maxWidth: getContainerMaxWidth(),
+              margin: '0 auto'
             }}>
               {interests.map((interest) => (
                 <div
@@ -370,5 +421,6 @@ export default function LearningPage() {
         }
       `}</style>
     </div>
+    </>
   );
 }
