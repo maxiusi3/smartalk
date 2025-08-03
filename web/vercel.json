@@ -2,6 +2,9 @@
   "version": 2,
   "name": "smartalk-web",
   "framework": "nextjs",
+  "buildCommand": "npm run build",
+  "outputDirectory": ".next",
+  "installCommand": "npm install",
   "build": {
     "env": {
       "NEXT_TELEMETRY_DISABLED": "1",
@@ -10,6 +13,9 @@
   },
   "functions": {
     "src/app/api/**/*.ts": {
+      "maxDuration": 30
+    },
+    "src/pages/api/**/*.ts": {
       "maxDuration": 30
     }
   },
@@ -28,8 +34,18 @@
         {
           "key": "X-XSS-Protection",
           "value": "1; mode=block"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "origin-when-cross-origin"
         }
       ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/$1"
     }
   ],
   "regions": ["sin1"],

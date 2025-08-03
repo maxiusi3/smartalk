@@ -2,12 +2,18 @@
 
 ## Root Level Organization
 ```
-smartalk-mvp/
-├── backend/           # Node.js API server
-├── mobile/            # React Native app
-├── content/           # Shared media assets
-├── docs/              # Documentation
-├── .kiro/             # Kiro configuration and specs
+smartalk-v2/
+├── backend/           # Node.js API server with enhanced CMS
+├── mobile/            # React Native app with comprehensive features
+├── cms/               # Content Management System for creators
+├── content/           # Structured media assets by theme
+├── docs/              # Enhanced documentation and specifications
+├── .kiro/             # Kiro configuration with V2 specs
+│   └── specs/
+│       ├── smartalk-mvp/     # Original MVP specs
+│       └── smartalk-v2/      # Enhanced V2 specifications
+├── infrastructure/    # Production deployment configurations
+├── monitoring/        # System monitoring and alerting
 └── package.json       # Workspace configuration
 ```
 
@@ -82,14 +88,49 @@ content/
 └── clips/
 ```
 
-### Database Models
-Core entities follow this hierarchy:
-- `User` (device-based anonymous users)
-- `Interest` (travel, movies, workplace)
-- `Drama` (mini-dramas within interests)
-- `Keyword` (vocabulary within dramas)
-- `UserProgress` (learning progress tracking)
-- `AnalyticsEvent` (user behavior tracking)
+### Enhanced Database Models
+Core entities with V2 enhancements:
+- `User` (device-based anonymous with learning motivation, activation cohort)
+- `Interest` (travel, movies, workplace with theme-specific colors)
+- `Drama` (30-second mini-dramas with dual video system)
+- `Keyword` (exactly 5 per drama with SRS data, rescue videos)
+- `KeywordVideoClip` (2-4 clips per keyword from same drama)
+- `UserProgress` (detailed attempt tracking with error recovery data)
+- `AnalyticsEvent` (enhanced events for magic moment tracking)
+- `SRSQueue` (spaced repetition scheduling with SM-2 algorithm)
+- `Badge` (theme-specific achievements with visual designs)
+
+### Content Structure Requirements
+Based on comprehensive Chinese requirements:
+```
+content/
+├── dramas/
+│   ├── travel/
+│   │   ├── chapter1/
+│   │   │   ├── subtitled.mp4      # 30-second teaser
+│   │   │   ├── no-subtitles.mp4   # Magic moment version
+│   │   │   └── keywords/          # Exactly 5 keywords
+│   │   │       ├── keyword1/
+│   │   │       │   ├── audio.mp3
+│   │   │       │   ├── clip1.mp4  # 3-5 seconds
+│   │   │       │   ├── clip2.mp4
+│   │   │       │   ├── clip3.mp4
+│   │   │       │   └── rescue-mouth.mp4
+│   │   │       └── ...
+│   │   └── chapter2/
+│   ├── movies/
+│   └── workplace/
+├── audio/
+├── images/
+└── rescue-videos/
+```
+
+### Error Recovery System Architecture
+Critical components for zero-abandonment experience:
+- `FocusModeController` (triggers at 2 consecutive context errors)
+- `RescueModeController` (triggers at 3 consecutive pronunciation failures)
+- `ErrorRecoveryAnalytics` (tracks effectiveness and optimization)
+- `ProgressPersistence` (ensures no lost progress on app interruption)
 
 ### Testing Structure
 Tests mirror source structure and use descriptive naming:

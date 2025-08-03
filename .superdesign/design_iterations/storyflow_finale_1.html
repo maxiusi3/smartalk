@@ -1,0 +1,116 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StoryFlow - Achievement Unlocked</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700&family=Inter:wght@400;500;700&family=Roboto+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="theme_storyflow_3.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        body {
+            background-color: var(--background);
+            color: var(--foreground);
+            font-family: var(--font-sans);
+            letter-spacing: var(--tracking-normal);
+        }
+        .badge-container {
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 2rem;
+            width: 100%;
+            max-width: 280px;
+            text-align: center;
+            box-shadow: var(--shadow-lg);
+        }
+        .feedback-button {
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1rem;
+            width: 100%;
+            text-align: left;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease-out;
+        }
+        .feedback-button:hover {
+            transform: scale(1.03);
+            border-color: var(--primary);
+            background-color: var(--muted);
+            box-shadow: var(--shadow-md);
+        }
+        .continue-button {
+            background-color: var(--primary);
+            color: var(--primary-foreground);
+            border-radius: 9999px;
+            padding: 1rem 2rem;
+            font-weight: 700;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            box-shadow: var(--shadow-lg);
+            width: 100%;
+        }
+        .continue-button:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <div class="min-h-screen p-4 sm:p-6 flex flex-col justify-center items-center">
+        <main class="w-full max-w-sm mx-auto space-y-8">
+            
+            <!-- Badge Area -->
+            <div class="text-center space-y-4">
+                <div class="badge-container mx-auto">
+                    <div class="text-7xl">🏅</div>
+                    <h2 class="text-xl font-bold mt-4">Urban Adventurer</h2>
+                </div>
+                <h1 class="text-3xl font-bold">Badge Unlocked!</h1>
+            </div>
+
+            <!-- Feedback Area -->
+            <div class="space-y-4">
+                <h3 class="text-center font-semibold" style="color: var(--muted-foreground);">How did it feel?</h3>
+                <div class="space-y-3">
+                    <button class="feedback-button">
+                        <span class="text-3xl">🤯</span>
+                        <span>I understood everything!</span>
+                    </button>
+                    <button class="feedback-button">
+                        <span class="text-3xl">😲</span>
+                        <span>More than I expected!</span>
+                    </button>
+                    <button class="feedback-button">
+                        <span class="text-3xl">🙂</span>
+                        <span>I got the main idea.</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Continue Button -->
+            <div class="pt-4">
+                <a href="storyflow_mvp_3.html" class="continue-button block">
+                    Continue to Next Chapter
+                </a>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

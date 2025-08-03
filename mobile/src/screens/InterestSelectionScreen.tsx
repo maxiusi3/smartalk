@@ -17,6 +17,8 @@ import { StackNavigationProp } from '@react-navigation/stack';
 
 import { useAppStore } from '@/store/useAppStore';
 import { ApiService } from '@/services/ApiService';
+import { UserService } from '@/services/UserService';
+import { AnalyticsService } from '@/services/AnalyticsService';
 import { Interest } from '@/types/api';
 import { RootStackParamList } from '@/navigation/AppNavigator';
 
@@ -28,6 +30,10 @@ interface InterestCardData extends Interest {
   icon: string;
   gradient: string[];
   image: string;
+  // V2 主题特定配置
+  primaryColor?: string;
+  secondaryColor?: string;
+  badgeName?: string;
 }
 
 export const InterestSelectionScreen: React.FC = () => {
@@ -65,12 +71,16 @@ export const InterestSelectionScreen: React.FC = () => {
       setLocalLoading(true);
       const data = await ApiService.getInterests();
       
-      // Enhance interests with visual data
+      // Enhance interests with visual data and V2 theme configurations
       const enhancedInterests: InterestCardData[] = data.map(interest => ({
         ...interest,
         icon: getInterestIcon(interest.name),
         gradient: getInterestGradient(interest.name),
         image: getInterestImage(interest.name),
+        // V2 主题特定配置（从数据库获取或使用默认值）
+        primaryColor: interest.primaryColor || getInterestGradient(interest.name)[0],
+        secondaryColor: interest.secondaryColor || getInterestGradient(interest.name)[1],
+        badgeName: interest.badgeName || getDefaultBadgeName(interest.name),
       }));
       
       setInterests(enhancedInterests);
@@ -92,11 +102,12 @@ export const InterestSelectionScreen: React.FC = () => {
   };
 
   const getInterestGradient = (name: string): string[] => {
+    // V2 主题特定颜色方案
     switch (name.toLowerCase()) {
-      case 'travel': return ['#FF6B35', '#F7931E'];
-      case 'movies': return ['#667eea', '#764ba2'];
-      case 'workplace': return ['#1A237E', '#3949AB'];
-      default: return ['#FF6B35', '#F7931E'];
+      case 'travel': return ['#2196F3', '#FF9800']; // Sky Blue + Sunset Orange
+      case 'movies': return ['#673AB7', '#FFC107']; // Deep Purple + Gold
+      case 'workplace': return ['#1976D2', '#90A4AE']; // Business Blue + Silver
+      default: return ['#2196F3', '#FF9800'];
     }
   };
 
@@ -106,6 +117,15 @@ export const InterestSelectionScreen: React.FC = () => {
       case 'movies': return 'https://images.unsplash.com/photo-1489599904472-af35ff2c7c3f?w=400';
       case 'workplace': return 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=400';
       default: return 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=400';
+    }
+  };
+
+  const getDefaultBadgeName = (name: string): string => {
+    switch (name.toLowerCase()) {
+      case 'travel': return '旅行生存家';
+      case 'movies': return '电影达人';
+      case 'workplace': return '职场精英';
+      default: return '学习达人';
     }
   };
 
@@ -128,26 +148,27 @@ export const InterestSelectionScreen: React.FC = () => {
   };
 
   const handleContinue = async () => {
-    if (!selectedId || !user) return;
+    if (!selectedId) return;
 
     try {
       setContentLoading(true);
-      
+
       const selectedInterest = interests.find(i => i.id === selectedId);
       if (!selectedInterest) return;
 
-      // Pre-load content for selected interest
-      const dramas = await ApiService.getDramasByInterest(selectedInterest.id);
-      
-      // Save selected interest
+      // 使用UserService保存选择的兴趣主题
+      await UserService.getInstance().setSelectedInterest(selectedInterest.name);
+
+      // Save selected interest to app store
       setSelectedInterest(selectedInterest);
 
-      // Record interest selection event
-      await ApiService.recordEvent({
-        userId: user.id,
-        eventType: 'interest_selected',
-        eventData: {
-          interestId: selectedInterest.id,
+      // 记录主题选择事件
+      AnalyticsService.getInstance().track('theme_selected', {
+        selectedTheme: selectedInterest.name,
+        themeDisplayName: selectedInterest.displayName,
+        primaryColor: selectedInterest.primaryColor,
+        secondaryColor: selectedInterest.secondaryColor,
+        badgeName: selectedInterest.badgeName,
           interestName: selectedInterest.name,
           dramaCount: dramas.length,
           timestamp: new Date().toISOString(),

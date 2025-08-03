@@ -5,15 +5,32 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
--- 创建枚举类型
-CREATE TYPE difficulty_level AS ENUM ('beginner', 'intermediate', 'advanced');
-CREATE TYPE progress_status AS ENUM ('not_started', 'in_progress', 'completed');
-CREATE TYPE progress_type AS ENUM ('story', 'video', 'keyword');
-CREATE TYPE achievement_type AS ENUM ('story_completion', 'keyword_mastery', 'streak', 'time_spent');
-CREATE TYPE video_type AS ENUM ('context', 'option_a', 'option_b');
+-- 创建枚举类型（如果不存在）
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'difficulty_level') THEN
+        CREATE TYPE difficulty_level AS ENUM ('beginner', 'intermediate', 'advanced');
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'progress_status') THEN
+        CREATE TYPE progress_status AS ENUM ('not_started', 'in_progress', 'completed');
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'progress_type') THEN
+        CREATE TYPE progress_type AS ENUM ('story', 'video', 'keyword');
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'achievement_type') THEN
+        CREATE TYPE achievement_type AS ENUM ('story_completion', 'keyword_mastery', 'streak', 'time_spent');
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'video_type') THEN
+        CREATE TYPE video_type AS ENUM ('context', 'option_a', 'option_b');
+    END IF;
+END$$;
 
 -- 用户表（扩展 Supabase Auth）
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
     email TEXT NOT NULL UNIQUE,
     first_name TEXT NOT NULL,
@@ -27,7 +44,7 @@ CREATE TABLE users (
 );
 
 -- 故事表
-CREATE TABLE stories (
+CREATE TABLE IF NOT EXISTS stories (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     title TEXT NOT NULL,
     description TEXT NOT NULL,
@@ -40,7 +57,7 @@ CREATE TABLE stories (
 );
 
 -- 视频表
-CREATE TABLE videos (
+CREATE TABLE IF NOT EXISTS videos (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     story_id UUID NOT NULL REFERENCES stories(id) ON DELETE CASCADE,
     title TEXT NOT NULL,
@@ -55,7 +72,7 @@ CREATE TABLE videos (
 );
 
 -- 关键词表
-CREATE TABLE keywords (
+CREATE TABLE IF NOT EXISTS keywords (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     word TEXT NOT NULL UNIQUE,
     definition TEXT NOT NULL,
@@ -69,7 +86,7 @@ CREATE TABLE keywords (
 );
 
 -- 故事-关键词关联表
-CREATE TABLE story_keywords (
+CREATE TABLE IF NOT EXISTS story_keywords (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     story_id UUID NOT NULL REFERENCES stories(id) ON DELETE CASCADE,
     keyword_id UUID NOT NULL REFERENCES keywords(id) ON DELETE CASCADE,
@@ -78,7 +95,7 @@ CREATE TABLE story_keywords (
 );
 
 -- 用户进度表
-CREATE TABLE user_progress (
+CREATE TABLE IF NOT EXISTS user_progress (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     story_id UUID REFERENCES stories(id) ON DELETE CASCADE,
@@ -97,7 +114,7 @@ CREATE TABLE user_progress (
 );
 
 -- 成就表
-CREATE TABLE achievements (
+CREATE TABLE IF NOT EXISTS achievements (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     title TEXT NOT NULL,
     description TEXT NOT NULL,
@@ -110,7 +127,7 @@ CREATE TABLE achievements (
 );
 
 -- 用户成就表
-CREATE TABLE user_achievements (
+CREATE TABLE IF NOT EXISTS user_achievements (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     achievement_id UUID NOT NULL REFERENCES achievements(id) ON DELETE CASCADE,
@@ -118,20 +135,20 @@ CREATE TABLE user_achievements (
     UNIQUE(user_id, achievement_id)
 );
 
--- 创建索引
-CREATE INDEX idx_stories_category ON stories(category);
-CREATE INDEX idx_stories_difficulty ON stories(difficulty);
-CREATE INDEX idx_videos_story_id ON videos(story_id);
-CREATE INDEX idx_videos_order ON videos(story_id, "order");
-CREATE INDEX idx_keywords_word ON keywords(word);
-CREATE INDEX idx_keywords_category ON keywords(category);
-CREATE INDEX idx_keywords_difficulty ON keywords(difficulty);
-CREATE INDEX idx_story_keywords_story_id ON story_keywords(story_id);
-CREATE INDEX idx_story_keywords_keyword_id ON story_keywords(keyword_id);
-CREATE INDEX idx_user_progress_user_id ON user_progress(user_id);
-CREATE INDEX idx_user_progress_status ON user_progress(status);
-CREATE INDEX idx_user_progress_type ON user_progress(type);
-CREATE INDEX idx_user_achievements_user_id ON user_achievements(user_id);
+-- 创建索引（如果不存在）
+CREATE INDEX IF NOT EXISTS idx_stories_category ON stories(category);
+CREATE INDEX IF NOT EXISTS idx_stories_difficulty ON stories(difficulty);
+CREATE INDEX IF NOT EXISTS idx_videos_story_id ON videos(story_id);
+CREATE INDEX IF NOT EXISTS idx_videos_order ON videos(story_id, "order");
+CREATE INDEX IF NOT EXISTS idx_keywords_word ON keywords(word);
+CREATE INDEX IF NOT EXISTS idx_keywords_category ON keywords(category);
+CREATE INDEX IF NOT EXISTS idx_keywords_difficulty ON keywords(difficulty);
+CREATE INDEX IF NOT EXISTS idx_story_keywords_story_id ON story_keywords(story_id);
+CREATE INDEX IF NOT EXISTS idx_story_keywords_keyword_id ON story_keywords(keyword_id);
+CREATE INDEX IF NOT EXISTS idx_user_progress_user_id ON user_progress(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_progress_status ON user_progress(status);
+CREATE INDEX IF NOT EXISTS idx_user_progress_type ON user_progress(type);
+CREATE INDEX IF NOT EXISTS idx_user_achievements_user_id ON user_achievements(user_id);
 
 -- 创建更新时间触发器函数
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -162,9 +179,21 @@ CREATE TRIGGER update_achievements_updated_at BEFORE UPDATE ON achievements
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- 行级安全策略 (RLS)
-ALTER TABLE users ENABLE ROW LEVEL SECURITY;
-ALTER TABLE user_progress ENABLE ROW LEVEL SECURITY;
-ALTER TABLE user_achievements ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS user_progress ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS user_achievements ENABLE ROW LEVEL SECURITY;
+
+-- 删除已存在的策略（如果存在）
+DROP POLICY IF EXISTS "Users can view own profile" ON users;
+DROP POLICY IF EXISTS "Users can update own profile" ON users;
+DROP POLICY IF EXISTS "Users can view own progress" ON user_progress;
+DROP POLICY IF EXISTS "Users can update own progress" ON user_progress;
+DROP POLICY IF EXISTS "Users can view own achievements" ON user_achievements;
+DROP POLICY IF EXISTS "Stories are viewable by everyone" ON stories;
+DROP POLICY IF EXISTS "Videos are viewable by everyone" ON videos;
+DROP POLICY IF EXISTS "Keywords are viewable by everyone" ON keywords;
+DROP POLICY IF EXISTS "Story keywords are viewable by everyone" ON story_keywords;
+DROP POLICY IF EXISTS "Achievements are viewable by everyone" ON achievements;
 
 -- 用户只能访问自己的数据
 CREATE POLICY "Users can view own profile" ON users

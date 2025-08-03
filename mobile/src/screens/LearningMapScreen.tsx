@@ -33,6 +33,12 @@ interface Chapter {
   keywordCount: number;
   estimatedTime: number;
   difficulty: 'easy' | 'medium' | 'hard';
+  // V2 增强字段
+  state: 'locked' | 'unlocked' | 'in_progress' | 'completed';
+  completionBadge?: string;
+  interestName: string;
+  unlockRequirement?: string;
+  completedAt?: string;
 }
 
 interface LearningPath {
@@ -41,6 +47,12 @@ interface LearningPath {
   overallProgress: number;
   streakDays: number;
   totalTimeSpent: number;
+  // V2 增强字段
+  wordsMastered: number;
+  chaptersCompleted: number;
+  totalSessions: number;
+  lastActivityDate: string;
+  achievements: string[];
 }
 
 const LearningMapScreen: React.FC = () => {
@@ -56,12 +68,21 @@ const LearningMapScreen: React.FC = () => {
     overallProgress: 70,
     streakDays: 7,
     totalTimeSpent: 2700, // in seconds
+    // V2 增强数据
+    wordsMastered: 45,
+    chaptersCompleted: 3,
+    totalSessions: 15,
+    lastActivityDate: new Date().toISOString(),
+    achievements: ['旅行生存家', '电影达人'],
   });
   const [loading, setLoading] = useState(true);
   const [showTip, setShowTip] = useState(false);
-  
+  const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
+  const [showUnlockAnimation, setShowUnlockAnimation] = useState<string | null>(null);
+
   const fadeAnim = new Animated.Value(0);
   const tipAnim = new Animated.Value(0);
+  const unlockAnim = new Animated.Value(0);
 
   useEffect(() => {
     loadLearningData();
@@ -90,6 +111,11 @@ const LearningMapScreen: React.FC = () => {
           keywordCount: 15,
           estimatedTime: 600,
           difficulty: 'easy',
+          // V2 增强字段
+          state: 'completed',
+          completionBadge: '旅行生存家',
+          interestName: '旅行',
+          completedAt: '2025-01-01T10:00:00Z',
         },
         {
           id: 'chapter-2',
@@ -102,18 +128,26 @@ const LearningMapScreen: React.FC = () => {
           keywordCount: 15,
           estimatedTime: 720,
           difficulty: 'easy',
+          // V2 增强字段
+          state: 'in_progress',
+          completionBadge: '电影达人',
+          interestName: '娱乐',
         },
         {
           id: 'chapter-3',
           title: '会议室讨论',
           description: '在团队会议中表达观点',
           thumbnailUrl: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400',
-          isUnlocked: false,
+          isUnlocked: true,
           isCompleted: false,
           progress: 0,
           keywordCount: 20,
           estimatedTime: 900,
           difficulty: 'medium',
+          // V2 增强字段
+          state: 'unlocked',
+          completionBadge: '职场精英',
+          interestName: '职场',
         },
         {
           id: 'chapter-4',
@@ -126,6 +160,11 @@ const LearningMapScreen: React.FC = () => {
           keywordCount: 22,
           estimatedTime: 1080,
           difficulty: 'medium',
+          // V2 增强字段
+          state: 'locked',
+          completionBadge: '购物达人',
+          interestName: '生活',
+          unlockRequirement: '完成"会议室讨论"章节',
         },
       ];
       
@@ -138,17 +177,26 @@ const LearningMapScreen: React.FC = () => {
   };
 
   const handleChapterPress = (chapter: Chapter) => {
-    if (!chapter.isUnlocked) {
+    // V2: 增强的章节状态处理
+    AnalyticsService.getInstance().track('chapter_selected', {
+      chapterId: chapter.id,
+      chapterTitle: chapter.title,
+      chapterState: chapter.state,
+      interestName: chapter.interestName,
+      timestamp: Date.now(),
+    });
+
+    if (chapter.state === 'locked') {
+      Alert.alert(
+        '章节未解锁',
+        chapter.unlockRequirement || '完成前面的章节来解锁这个内容',
+        [{ text: '知道了', style: 'default' }]
+      );
       return;
     }
-    
-    if (chapter.isCompleted) {
-      // Navigate to review mode
-      navigation.navigate('Learning', { dramaId: chapter.id });
-    } else {
-      // Navigate to learning mode
-      navigation.navigate('Learning', { dramaId: chapter.id });
-    }
+
+    // 导航到vTPR学习界面
+    navigation.navigate('VTPRLearning', { dramaId: chapter.id });
   };
 
   const handleTipPress = () => {
@@ -198,19 +246,54 @@ const LearningMapScreen: React.FC = () => {
     }
   };
 
+  // V2: 兴趣筛选器
+  const renderInterestFilter = () => {
+    const interests = [...new Set(chapters.map(c => c.interestName))];
+
+    return (
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.filterContainer}
+        contentContainerStyle={styles.filterContent}
+      >
+        <TouchableOpacity
+          style={[styles.filterButton, !selectedFilter && styles.filterButtonActive]}
+          onPress={() => setSelectedFilter(null)}
+        >
+          <Text style={[styles.filterButtonText, !selectedFilter && styles.filterButtonTextActive]}>
+            全部
+          </Text>
+        </TouchableOpacity>
+
+        {interests.map(interest => (
+          <TouchableOpacity
+            key={interest}
+            style={[styles.filterButton, selectedFilter === interest && styles.filterButtonActive]}
+            onPress={() => setSelectedFilter(interest)}
+          >
+            <Text style={[styles.filterButtonText, selectedFilter === interest && styles.filterButtonTextActive]}>
+              {interest}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+    );
+  };
+
   const renderProgressStats = () => (
     <View style={styles.statsContainer}>
       <View style={styles.statItem}>
-        <Text style={styles.statNumber}>{learningPath.overallProgress}%</Text>
-        <Text style={styles.statLabel}>总体进度</Text>
+        <Text style={styles.statNumber}>{learningPath.wordsMastered}</Text>
+        <Text style={styles.statLabel}>掌握单词</Text>
       </View>
       <View style={styles.statItem}>
         <Text style={styles.statNumber}>{learningPath.streakDays}</Text>
         <Text style={styles.statLabel}>连续天数</Text>
       </View>
       <View style={styles.statItem}>
-        <Text style={styles.statNumber}>{formatTime(learningPath.totalTimeSpent)}</Text>
-        <Text style={styles.statLabel}>学习时长</Text>
+        <Text style={styles.statNumber}>{learningPath.chaptersCompleted}</Text>
+        <Text style={styles.statLabel}>完成章节</Text>
       </View>
     </View>
   );
@@ -373,9 +456,14 @@ const LearningMapScreen: React.FC = () => {
               </View>
             </View>
 
+            {/* V2: 兴趣筛选器 */}
+            {renderInterestFilter()}
+
             {/* Chapters */}
             <View style={styles.chaptersContainer}>
-              {chapters.map((chapter, index) => renderChapterCard(chapter, index))}
+              {chapters
+                .filter(chapter => !selectedFilter || chapter.interestName === selectedFilter)
+                .map((chapter, index) => renderChapterCard(chapter, index))}
             </View>
 
             {/* Motivational section */}
@@ -810,6 +898,31 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  // V2 筛选器样式
+  filterContainer: {
+    marginBottom: 16,
+  },
+  filterContent: {
+    paddingHorizontal: 24,
+    gap: 12,
+  },
+  filterButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    backgroundColor: '#e2e8f0',
+  },
+  filterButtonActive: {
+    backgroundColor: '#667eea',
+  },
+  filterButtonText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#64748b',
+  },
+  filterButtonTextActive: {
+    color: '#FFFFFF',
   },
 });
 

@@ -36,7 +36,7 @@ export default function VTPRVideoOption({
   const [isVideoLoaded, setIsVideoLoaded] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const previewTimeoutRef = useRef<NodeJS.Timeout>();
+  const previewTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // 预加载视频元数据
   useEffect(() => {

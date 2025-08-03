@@ -23,6 +23,16 @@ export default function ProgressDashboard({
   const [loading, setLoading] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
+  const [stats, setStats] = useState({
+    totalKeywords: 0,
+    unlockedKeywords: 0,
+    completedStories: 0,
+    totalAttempts: 0,
+    totalCorrect: 0,
+    accuracy: 0,
+    currentStreak: 0,
+    bestStreak: 0
+  });
 
   // 计算完成率
   const completionRate = stats.totalKeywords > 0 
@@ -40,7 +50,29 @@ export default function ProgressDashboard({
 
   const levelInfo = getLevelInfo(stats.unlockedKeywords);
 
-  if (isLoading) {
+  const exportLearningData = () => {
+    // 导出学习数据的函数实现
+    const data = {
+      stats,
+      timestamp: new Date().toISOString()
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'learning-progress.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const refreshProgress = () => {
+    // 刷新进度的函数实现
+    setLoading(true);
+    // 这里可以添加实际的进度刷新逻辑
+    setTimeout(() => setLoading(false), 1000);
+  };
+
+  if (loading) {
     return (
       <div style={{
         background: 'rgba(255, 255, 255, 0.8)',

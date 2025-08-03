@@ -222,11 +222,12 @@ class MagicMomentDetector {
       priority: 6,
       cooldown: 1,
       createMoment: (progress: UserProgress, context: any) => {
-        const themeInfo = {
+        const themeMap = {
           travel: { name: '旅行英语', icon: '✈️', description: '旅行场景的英语交流' },
           movie: { name: '电影对话', icon: '🎬', description: '影视作品的英语理解' },
           workplace: { name: '职场沟通', icon: '💼', description: '职场环境的英语应用' }
-        }[context.theme] || { name: '英语学习', icon: '📚', description: '英语技能' };
+        };
+        const themeInfo = themeMap[context.theme as keyof typeof themeMap] || { name: '英语学习', icon: '📚', description: '英语技能' };
 
         const themeStats = progressManager.getThemeStats(context.theme);
         
@@ -313,7 +314,7 @@ class MagicMomentDetector {
     // 添加成就
     const achievement = {
       id: moment.id,
-      type: 'magic_moment' as const,
+      type: 'exploration' as const,
       title: moment.title,
       description: moment.description,
       icon: moment.icon,

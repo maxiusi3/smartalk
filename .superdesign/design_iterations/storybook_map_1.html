@@ -1,0 +1,160 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StoryFlow - The Path</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&family=Roboto+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="theme_storybook_modern_1.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        body {
+            background-color: var(--background);
+            color: var(--foreground);
+            font-family: var(--font-sans);
+        }
+        .header-stat {
+            background-color: var(--muted);
+            border-radius: 9999px;
+            padding: 0.5rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 700;
+        }
+        .path-container {
+            position: relative;
+            width: 100%;
+            height: 800px; /* Adjust height as needed */
+        }
+        .path-svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+        .chapter-stop {
+            position: absolute;
+            z-index: 1;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+        .chapter-stop:hover {
+            transform: scale(1.05);
+        }
+        .chapter-illustration {
+            background-color: var(--card);
+            border: 4px solid var(--border);
+            border-radius: 9999px;
+            width: 120px;
+            height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow-lg);
+            margin: 0 auto;
+        }
+        .chapter-stop.current .chapter-illustration {
+            border-color: var(--primary);
+            animation: pulse-current 2s infinite;
+        }
+        .chapter-stop.completed .chapter-illustration {
+            border-color: var(--secondary);
+        }
+        .chapter-stop.locked .chapter-illustration {
+            filter: grayscale(1);
+            opacity: 0.7;
+        }
+        .chapter-label {
+            margin-top: 1rem;
+            font-weight: 800;
+            font-size: 1.125rem;
+        }
+        .status-icon {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background-color: var(--card);
+            border-radius: 9999px;
+            padding: 0.5rem;
+            box-shadow: var(--shadow-md);
+        }
+        @keyframes pulse-current {
+            0%, 100% { box-shadow: var(--shadow-lg), 0 0 0 0 oklch(0.65 0.1 190 / 0.4); }
+            50% { box-shadow: var(--shadow-lg), 0 0 0 12px oklch(0.65 0.1 190 / 0); }
+        }
+    </style>
+</head>
+<body class="antialiased overflow-x-hidden">
+
+    <div class="min-h-screen p-4 sm:p-6 flex flex-col">
+        <!-- Header -->
+        <header class="flex justify-between items-center w-full max-w-lg mx-auto mb-8">
+            <div class="w-12 h-12 bg-muted rounded-full flex items-center justify-center cursor-pointer">
+                <i data-lucide="user" class="w-7 h-7"></i>
+            </div>
+            <div class="flex items-center gap-2 sm:gap-4">
+                <div class="header-stat">
+                    <span>5</span>
+                    <i data-lucide="flame" class="w-5 h-5" style="color: var(--secondary);"></i>
+                </div>
+                <div class="header-stat">
+                    <span>120</span>
+                    <i data-lucide="gem" class="w-5 h-5" style="color: var(--primary);"></i>
+                </div>
+            </div>
+        </header>
+
+        <!-- Learning Map -->
+        <main class="flex-grow w-full max-w-lg mx-auto">
+            <div class="path-container">
+                <svg class="path-svg" viewBox="0 0 400 800" preserveAspectRatio="xMidYMax meet">
+                    <path d="M 200,50 C 50,150 350,250 200,350 C 50,450 350,550 200,650" stroke="var(--border)" stroke-width="4" fill="none" stroke-dasharray="10 10"/>
+                </svg>
+
+                <!-- Chapter 1: Completed -->
+                <div class="chapter-stop completed" style="left: 50%; top: 50px; transform: translateX(-50%);">
+                    <div class="chapter-illustration">
+                        <div class="text-6xl">🏙️</div>
+                        <div class="status-icon" style="background-color: var(--secondary);">
+                            <i data-lucide="check" class="w-5 h-5" style="color: var(--secondary-foreground);"></i>
+                        </div>
+                    </div>
+                    <div class="chapter-label">Urban Adventures</div>
+                </div>
+
+                <!-- Chapter 2: Current -->
+                <div class="chapter-stop current" style="left: 15%; top: 320px;">
+                    <div class="chapter-illustration">
+                        <div class="text-6xl">✈️</div>
+                    </div>
+                    <div class="chapter-label">Travel Troubles</div>
+                </div>
+
+                <!-- Chapter 3: Locked -->
+                <div class="chapter-stop locked" style="left: 60%; top: 600px;">
+                    <div class="chapter-illustration">
+                        <div class="text-6xl">☕</div>
+                        <div class="status-icon">
+                            <i data-lucide="lock" class="w-5 h-5"></i>
+                        </div>
+                    </div>
+                    <div class="chapter-label">Café Conversations</div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

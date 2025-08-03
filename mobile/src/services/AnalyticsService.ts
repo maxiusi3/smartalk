@@ -325,9 +325,207 @@ export const trackError = (userId: string, errorType: string, errorMessage: stri
 };
 
 export const trackPerformance = (userId: string, metricName: string, value: number, context?: Record<string, any>) => {
-  trackEvent(`performance_${metricName}`, { 
+  trackEvent(`performance_${metricName}`, {
     value,
     context,
-    timestamp: Date.now() 
+    timestamp: Date.now()
+  }, userId);
+};
+
+// ===== V2 Enhanced Analytics Functions =====
+
+// Conversion Funnel Tracking
+export const trackConversionFunnel = (userId: string, stage: string, properties?: Record<string, any>) => {
+  trackEvent(`funnel_${stage}`, {
+    stage,
+    ...properties,
+    timestamp: Date.now()
+  }, userId);
+};
+
+// Magic Moment Specific Events
+export const trackMagicMomentInitiated = (userId: string, chapterId: string, keywordId: string) => {
+  trackEvent('magic_moment_initiated', {
+    chapterId,
+    keywordId,
+    timestamp: Date.now()
+  }, userId);
+};
+
+export const trackMagicMomentFeedbackGiven = (userId: string, chapterId: string, feedback: string, emotionalResponse: string) => {
+  trackEvent('magic_moment_feedback_given', {
+    chapterId,
+    feedback,
+    emotionalResponse,
+    timestamp: Date.now()
+  }, userId);
+};
+
+// SRS Engagement Tracking
+export const trackSRSSessionStarted = (userId: string, sessionType: string, totalCards: number) => {
+  trackEvent('srs_session_started', {
+    sessionType,
+    totalCards,
+    timestamp: Date.now()
+  }, userId);
+};
+
+export const trackSRSCardReviewed = (userId: string, cardId: string, assessment: string, responseTime: number, isCorrect: boolean) => {
+  trackEvent('srs_card_reviewed', {
+    cardId,
+    assessment,
+    responseTime,
+    isCorrect,
+    timestamp: Date.now()
+  }, userId);
+};
+
+export const trackSRSSessionCompleted = (userId: string, sessionId: string, cardsReviewed: number, accuracy: number, duration: number) => {
+  trackEvent('srs_session_completed', {
+    sessionId,
+    cardsReviewed,
+    accuracy,
+    duration,
+    timestamp: Date.now()
+  }, userId);
+};
+
+// Error Recovery Analytics
+export const trackFocusModeTriggered = (userId: string, phase: string, attemptCount: number, keywordId: string) => {
+  trackEvent('focus_mode_triggered', {
+    phase,
+    attemptCount,
+    keywordId,
+    timestamp: Date.now()
+  }, userId);
+};
+
+export const trackRescueModeTriggered = (userId: string, phase: string, attemptCount: number, keywordId: string) => {
+  trackEvent('rescue_mode_triggered', {
+    phase,
+    attemptCount,
+    keywordId,
+    timestamp: Date.now()
+  }, userId);
+};
+
+export const trackRecoverySuccessful = (userId: string, recoveryType: string, finalAttempts: number, keywordId: string) => {
+  trackEvent('recovery_successful', {
+    recoveryType,
+    finalAttempts,
+    keywordId,
+    timestamp: Date.now()
+  }, userId);
+};
+
+// Speaking Tips Analytics
+export const trackSpeakingTipsOpened = (userId: string, userLevel: string, currentTheme?: string) => {
+  trackEvent('speaking_tips_opened', {
+    userLevel,
+    currentTheme,
+    timestamp: Date.now()
+  }, userId);
+};
+
+export const trackSpeakingTipViewed = (userId: string, tipId: string, category: string, phrase: string) => {
+  trackEvent('speaking_tip_viewed', {
+    tipId,
+    category,
+    phrase,
+    timestamp: Date.now()
+  }, userId);
+};
+
+// Learning Journey Analytics
+export const trackChapterSelected = (userId: string, chapterId: string, chapterTitle: string, chapterState: string, interestName: string) => {
+  trackEvent('chapter_selected', {
+    chapterId,
+    chapterTitle,
+    chapterState,
+    interestName,
+    timestamp: Date.now()
+  }, userId);
+};
+
+export const trackProfileViewed = (userId: string, totalAchievements: number) => {
+  trackEvent('profile_viewed', {
+    totalAchievements,
+    timestamp: Date.now()
+  }, userId);
+};
+
+export const trackAchievementEarned = (userId: string, achievementId: string, achievementName: string, category: string, rarity: string) => {
+  trackEvent('achievement_earned', {
+    achievementId,
+    achievementName,
+    category,
+    rarity,
+    timestamp: Date.now()
+  }, userId);
+};
+
+// Learning Map Analytics
+export const trackLearningMapViewed = (userId: string, totalChapters: number, completedChapters: number) => {
+  trackEvent('learning_map_viewed', {
+    totalChapters,
+    completedChapters,
+    timestamp: Date.now()
+  }, userId);
+};
+
+// Performance Metrics
+export const trackAppStartupTime = (userId: string, startupTime: number) => {
+  trackEvent('performance_app_startup', {
+    startupTime,
+    target: 2000, // 2 seconds target
+    meetsTarget: startupTime < 2000,
+    timestamp: Date.now()
+  }, userId);
+};
+
+export const trackVideoLoadingTime = (userId: string, loadingTime: number, videoId: string) => {
+  trackEvent('performance_video_loading', {
+    loadingTime,
+    videoId,
+    target: 1000, // 1 second target
+    meetsTarget: loadingTime < 1000,
+    timestamp: Date.now()
+  }, userId);
+};
+
+export const trackInteractionResponseTime = (userId: string, interactionType: string, responseTime: number) => {
+  trackEvent('performance_interaction_response', {
+    interactionType,
+    responseTime,
+    target: 100, // 100ms target
+    meetsTarget: responseTime < 100,
+    timestamp: Date.now()
+  }, userId);
+};
+
+// North Star Metric: User Activation Rate
+export const trackUserActivation = (userId: string, activationMethod: string, timeToActivation: number) => {
+  trackEvent('user_activation', {
+    activationMethod,
+    timeToActivation,
+    timestamp: Date.now()
+  }, userId);
+};
+
+// A/B Testing Framework
+export const trackABTestAssignment = (userId: string, testName: string, variant: string) => {
+  trackEvent('ab_test_assignment', {
+    testName,
+    variant,
+    timestamp: Date.now()
+  }, userId);
+};
+
+export const trackABTestConversion = (userId: string, testName: string, variant: string, conversionType: string) => {
+  trackEvent('ab_test_conversion', {
+    testName,
+    variant,
+    conversionType,
+    timestamp: Date.now()
   }, userId);
 };

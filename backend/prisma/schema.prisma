@@ -12,15 +12,29 @@ datasource db {
 
 // 用户表 - 支持匿名用户（基于设备ID）
 model User {
-  id         String   @id @default(cuid())
-  deviceId   String   @unique @map("device_id")
-  createdAt  DateTime @default(now()) @map("created_at")
-  updatedAt  DateTime @updatedAt @map("updated_at")
-  
+  id                    String   @id @default(cuid())
+  deviceId              String   @unique @map("device_id")
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  // V2 增强字段
+  selectedInterest      String?  @map("selected_interest") // travel, movies, workplace
+  cefrLevel             String?  @map("cefr_level") // A1, A2, B1, B2, C1, C2
+  placementTestCompleted Boolean @default(false) @map("placement_test_completed")
+  onboardingCompleted   Boolean  @default(false) @map("onboarding_completed")
+  activationTimestamp   DateTime? @map("activation_timestamp") // Magic moment completion
+  learningMotivation    String?  @map("learning_motivation") // travel, social, career, culture, other
+  activationCohort      String?  @map("activation_cohort") // Day1, Day3, Day7+
+  aquaPoints            Int      @default(0) @map("aqua_points") // Gamification currency
+  isFirstLaunch         Boolean  @default(true) @map("is_first_launch")
+
   // 关联关系
-  progress   UserProgress[]
-  events     AnalyticsEvent[]
-  
+  progress              UserProgress[]
+  events                AnalyticsEvent[]
+  srsQueue              SRSQueue[]
+  userBadges            UserBadge[]
+  pronunciationAssessments PronunciationAssessment[]
+
   @@map("users")
 }
 
@@ -35,10 +49,16 @@ model Interest {
   sortOrder   Int      @default(0) @map("sort_order")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
-  
+
+  // V2 增强字段 - 主题特定配置
+  primaryColor   String? @map("primary_color") // 主题主色调
+  secondaryColor String? @map("secondary_color") // 主题辅助色
+  badgeName      String? @map("badge_name") // 主题徽章名称
+
   // 关联关系
   dramas      Drama[]
-  
+  badges      Badge[]
+
   @@map("interests")
 }
 
@@ -80,15 +100,26 @@ model Keyword {
   sortOrder       Int      @default(0) @map("sort_order")
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
-  
+
+  // V2 增强字段
+  pronunciation   String?  // IPA音标
+  rescueVideoUrl  String?  @map("rescue_video_url") // 救援模式口型视频
+  phoneticTips    String?  @map("phonetic_tips") // 发音技巧（JSON格式）
+  contextClues    String?  @map("context_clues") // 上下文线索（JSON格式）
+
+  // 字幕高亮效果配置
+  highlightEffect String?  @map("highlight_effect") // bounce, glow, pulse
+
   // 外键
   dramaId         String   @map("drama_id")
   drama           Drama    @relation(fields: [dramaId], references: [id], onDelete: Cascade)
-  
+
   // 关联关系
   videoClips      KeywordVideoClip[]
   progress        UserProgress[]
-  
+  srsQueue        SRSQueue[]
+  pronunciationAssessments PronunciationAssessment[]
+
   @@map("keywords")
 }
 
@@ -113,13 +144,22 @@ model KeywordVideoClip {
 // 用户学习进度表
 model UserProgress {
   id              String   @id @default(cuid())
-  status          String   @default("locked") // locked, unlocked, completed
+  status          String   @default("locked") // locked, unlocked, in_progress, completed
   completedAt     DateTime? @map("completed_at")
   attempts        Int      @default(0) // 尝试次数
   correctAttempts Int      @default(0) @map("correct_attempts") // 正确次数
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
-  
+
+  // V2 增强字段 - 错误恢复追踪
+  contextGuessAttempts    Int     @default(0) @map("context_guess_attempts") // 情景猜义尝试次数
+  pronunciationAttempts   Int     @default(0) @map("pronunciation_attempts") // 发音尝试次数
+  usedFocusMode          Boolean @default(false) @map("used_focus_mode") // 是否使用了专注模式
+  usedRescueMode         Boolean @default(false) @map("used_rescue_mode") // 是否使用了救援模式
+  finalScore             Float?  @map("final_score") // 最终得分
+  aquaPointsEarned       Int     @default(0) @map("aqua_points_earned") // 获得的Aqua积分
+  totalTimeSpent         Int     @default(0) @map("total_time_spent") // 总耗时（毫秒）
+
   // 外键
   userId          String   @map("user_id")
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -127,7 +167,7 @@ model UserProgress {
   drama           Drama    @relation(fields: [dramaId], references: [id], onDelete: Cascade)
   keywordId       String?  @map("keyword_id") // 可选，用于跟踪单个词汇的进度
   keyword         Keyword? @relation(fields: [keywordId], references: [id], onDelete: Cascade)
-  
+
   @@unique([userId, dramaId, keywordId])
   @@map("user_progress")
 }
@@ -135,13 +175,93 @@ model UserProgress {
 // 分析事件表
 model AnalyticsEvent {
   id         String   @id @default(cuid())
-  eventType  String   @map("event_type") // onboarding_start, video_play, keyword_unlock, activation, etc.
-  eventData  Json?    @map("event_data") // 事件相关的额外数据 (JSON)
+  eventType  String   @map("event_type") // onboarding_step, theme_selected, video_complete, keyword_attempt, focus_mode_triggered, rescue_mode_triggered, magic_moment_initiated, magic_moment_completed, magic_moment_feedback_given, badge_earned, retention_check, srs_session_started, srs_card_reviewed
+  eventData  String?  @map("event_data") // 事件相关的额外数据 (JSON字符串)
   timestamp  DateTime @default(now())
-  
+  sessionId  String?  @map("session_id") // 会话ID
+
   // 外键
   userId     String   @map("user_id")
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   @@map("analytics_events")
+}
+
+// SRS（间隔重复）队列表
+model SRSQueue {
+  id              String   @id @default(cuid())
+  nextReviewDate  DateTime @map("next_review_date") // 下次复习时间
+  interval        Int      @default(1) // 复习间隔（天）
+  easeFactor      Float    @default(2.5) @map("ease_factor") // 难度因子
+  reviewCount     Int      @default(0) @map("review_count") // 复习次数
+  lastReviewDate  DateTime? @map("last_review_date") // 上次复习时间
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  // 外键
+  userId          String   @map("user_id")
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  keywordId       String   @map("keyword_id")
+  keyword         Keyword  @relation(fields: [keywordId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, keywordId])
+  @@map("srs_queue")
+}
+
+// 徽章表
+model Badge {
+  id          String   @id @default(cuid())
+  name        String   // 徽章名称
+  displayName String   @map("display_name") // 显示名称
+  description String?  // 徽章描述
+  iconUrl     String   @map("icon_url") // 徽章图标URL
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // 外键
+  interestId  String   @map("interest_id")
+  interest    Interest @relation(fields: [interestId], references: [id], onDelete: Cascade)
+
+  // 关联关系
+  userBadges  UserBadge[]
+
+  @@map("badges")
+}
+
+// 用户徽章关联表
+model UserBadge {
+  id        String   @id @default(cuid())
+  earnedAt  DateTime @default(now()) @map("earned_at")
+
+  // 外键
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badgeId   String   @map("badge_id")
+  badge     Badge    @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, badgeId])
+  @@map("user_badges")
+}
+
+// 发音评估记录表
+model PronunciationAssessment {
+  id              String   @id @default(cuid())
+  provider        String   // 讯飞, ELSA
+  accuracyScore   Float?   @map("accuracy_score") // 准确度得分
+  fluencyScore    Float?   @map("fluency_score") // 流利度得分
+  completenessScore Float? @map("completeness_score") // 完整度得分
+  overallScore    Float    @map("overall_score") // 总体得分
+  feedback        String?  // 反馈信息（JSON格式）
+  audioUrl        String?  @map("audio_url") // 录音文件URL（如果保存）
+  responseTime    Int      @map("response_time") // API响应时间（毫秒）
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  // 外键
+  userId          String   @map("user_id")
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  keywordId       String   @map("keyword_id")
+  keyword         Keyword  @relation(fields: [keywordId], references: [id], onDelete: Cascade)
+
+  @@map("pronunciation_assessments")
 }

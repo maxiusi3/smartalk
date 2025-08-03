@@ -1,6 +1,12 @@
 /**
  * CDN服务 - 处理内容分发和URL优化
  * 提供视频、音频、图片等媒体资源的CDN加速访问
+ *
+ * 核心功能：
+ * - 30秒微剧情视频的CDN分发和缓存
+ * - 音频文件（发音示例、救援视频）的快速传输
+ * - 智能边缘节点选择，确保<1秒视频加载时间
+ * - 自适应码率和质量调整
  */
 
 interface CDNConfig {
@@ -8,6 +14,29 @@ interface CDNConfig {
   regions: string[];
   cacheTTL: number;
   fallbackUrls: string[];
+
+  // 视频/音频特定配置
+  videoDelivery: {
+    adaptiveBitrate: boolean;
+    qualityLevels: ('240p' | '360p' | '480p' | '720p' | '1080p')[];
+    maxLoadTime: number; // ms，目标<1秒
+    preloadStrategy: 'none' | 'metadata' | 'auto';
+  };
+
+  audioDelivery: {
+    compressionLevel: number; // 0-9
+    sampleRate: number; // Hz
+    bitrate: number; // kbps
+    format: 'mp3' | 'aac' | 'opus';
+  };
+
+  // 边缘节点配置
+  edgeNodes: {
+    region: string;
+    endpoint: string;
+    priority: number;
+    latency: number; // ms
+  }[];
 }
 
 interface MediaOptimization {
@@ -30,7 +59,24 @@ export class CDNService {
       fallbackUrls: [
         'https://backup-cdn.smartalk.app',
         'https://static.smartalk.app'
-      ]
+      ],
+      videoDelivery: {
+        adaptiveBitrate: true,
+        qualityLevels: ['360p', '480p', '720p'],
+        maxLoadTime: 1000, // <1秒加载时间
+        preloadStrategy: 'metadata',
+      },
+      audioDelivery: {
+        compressionLevel: 6,
+        sampleRate: 44100,
+        bitrate: 128,
+        format: 'mp3',
+      },
+      edgeNodes: [
+        { region: 'asia-east1', endpoint: 'https://asia-cdn.smartalk.app', priority: 1, latency: 50 },
+        { region: 'asia-southeast1', endpoint: 'https://sea-cdn.smartalk.app', priority: 2, latency: 80 },
+        { region: 'us-west1', endpoint: 'https://us-cdn.smartalk.app', priority: 3, latency: 150 },
+      ],
     };
     this.currentRegion = this.detectOptimalRegion();
   }

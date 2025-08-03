@@ -5,12 +5,14 @@ import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {useAppStore} from '@/store/useAppStore';
 
 // 屏幕组件导入
-import {OnboardingScreen} from '@/screens/OnboardingScreen';
-import {InterestSelectionScreen} from '@/screens/InterestSelectionScreen';
-import {HomeScreen} from '@/screens/HomeScreen';
-import {LearningScreen} from '@/screens/LearningScreen';
-import {ProgressScreen} from '@/screens/ProgressScreen';
-import {SettingsScreen} from '@/screens/SettingsScreen';
+import SplashScreen from '@/screens/SplashScreen';
+import OnboardingScreen from '@/screens/OnboardingScreen';
+import PlacementTestScreen from '@/screens/PlacementTestScreen';
+import InterestSelectionScreen from '@/screens/InterestSelectionScreen';
+import HomeScreen from '@/screens/HomeScreen';
+import LearningScreen from '@/screens/LearningScreen';
+import ProgressScreen from '@/screens/ProgressScreen';
+import SettingsScreen from '@/screens/SettingsScreen';
 
 // Milestone screens
 import MilestoneScreen from '@/screens/MilestoneScreen';
@@ -20,9 +22,12 @@ import LearningMapScreen from '@/screens/LearningMapScreen';
 
 // 导航类型定义
 export type RootStackParamList = {
+  Splash: undefined;
   Onboarding: undefined;
+  PlacementTest: undefined;
   InterestSelection: undefined;
   MainTabs: undefined;
+  Home: undefined;
   Learning: {
     dramaId: string;
     keywordId?: string;
@@ -99,10 +104,9 @@ const MainTabNavigator: React.FC = () => {
 
 // 主应用导航器
 export const AppNavigator: React.FC = () => {
-  const {isFirstLaunch, selectedInterest} = useAppStore();
-
   return (
     <Stack.Navigator
+      initialRouteName="Splash"
       screenOptions={{
         headerShown: false,
         gestureEnabled: true,
@@ -121,28 +125,42 @@ export const AppNavigator: React.FC = () => {
           };
         },
       }}>
-      
-      {/* 首次启动流程 */}
-      {isFirstLaunch && (
-        <Stack.Screen
-          name="Onboarding"
-          component={OnboardingScreen}
-          options={{
-            animationEnabled: false,
-          }}
-        />
-      )}
-      
-      {/* 兴趣选择（如果未选择） */}
-      {!selectedInterest && !isFirstLaunch && (
-        <Stack.Screen
-          name="InterestSelection"
-          component={InterestSelectionScreen}
-          options={{
-            animationEnabled: false,
-          }}
-        />
-      )}
+
+      {/* 启动画面 */}
+      <Stack.Screen
+        name="Splash"
+        component={SplashScreen}
+        options={{
+          animationEnabled: false,
+        }}
+      />
+
+      {/* Onboarding流程 */}
+      <Stack.Screen
+        name="Onboarding"
+        component={OnboardingScreen}
+        options={{
+          animationEnabled: false,
+        }}
+      />
+
+      {/* 定级测试 */}
+      <Stack.Screen
+        name="PlacementTest"
+        component={PlacementTestScreen}
+        options={{
+          animationEnabled: false,
+        }}
+      />
+
+      {/* 兴趣选择 */}
+      <Stack.Screen
+        name="InterestSelection"
+        component={InterestSelectionScreen}
+        options={{
+          animationEnabled: false,
+        }}
+      />
       
       {/* 主应用界面 */}
       <Stack.Screen

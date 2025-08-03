@@ -82,15 +82,21 @@ export async function GET(request: NextRequest) {
       }, { status: 500 });
     }
 
+    // 获取所有故事
+    const { data: stories } = await supabase
+      .from('stories')
+      .select('*');
+
     // 计算统计信息
     const stats = {
-      totalKeywords: progress?.length || 0,
-      unlockedKeywords: progress?.filter(p => p.is_unlocked).length || 0,
+      totalKeywords: stories?.length || 0,
+ unlockedKeywords: progress?.filter(p => p.is_unlocked).length || 0,
       completedStories: new Set(
         progress?.filter(p => p.completed_at).map(p => p.story_id) || []
       ).size,
       totalAttempts: progress?.reduce((sum, p) => sum + p.attempts, 0) || 0,
-      totalCorrect: progress?.reduce((sum, p) => sum + p.correct_attempts, 0) || 0
+      totalCorrect: progress?.reduce((sum, p) => sum + p.correct_attempts, 0) || 0,
+      accuracy: 0
     };
 
     stats.accuracy = stats.totalAttempts > 0 
@@ -173,7 +179,7 @@ export async function POST(request: NextRequest) {
       .eq('keyword_id', keywordId)
       .single();
 
-    const progressData = {
+    const progressData: any = {
       user_id: user.id,
       story_id: storyId,
       keyword_id: keywordId,

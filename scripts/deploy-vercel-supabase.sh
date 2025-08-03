@@ -300,8 +300,8 @@ initialize_database() {
     
     # 检查是否安装了 Supabase CLI
     if ! command -v supabase &> /dev/null; then
-        log_info "安装 Supabase CLI..."
-        npm install -g supabase
+        log_info "Supabase CLI 未安装，跳过自动安装"
+        log_warning "请手动安装 Supabase CLI 或使用 Supabase Dashboard 进行数据库初始化"
     fi
     
     # 检查数据库迁移文件是否存在
@@ -354,14 +354,28 @@ setup_vercel_cli() {
     
     # 检查是否安装了 Vercel CLI
     if ! command -v vercel &> /dev/null; then
-        log_info "安装 Vercel CLI..."
-        npm install -g vercel
+        log_info "检测到 Vercel CLI 未安装"
+        log_info "尝试使用 npx 运行 Vercel CLI..."
+        
+        # 测试 npx 是否可用
+        if npx vercel --version &> /dev/null; then
+            log_success "可以使用 npx vercel"
+            VERCEL_CMD="npx vercel"
+        else
+            log_info "安装 Vercel CLI 到本地项目..."
+            cd web
+            npm install --save-dev vercel
+            cd ..
+            VERCEL_CMD="npx vercel"
+        fi
+    else
+        VERCEL_CMD="vercel"
     fi
     
     # 检查是否已登录
-    if ! vercel whoami &> /dev/null; then
+    if ! $VERCEL_CMD whoami &> /dev/null; then
         log_info "请登录 Vercel 账号..."
-        vercel login
+        $VERCEL_CMD login
     fi
     
     log_success "Vercel CLI 配置完成"
@@ -384,39 +398,39 @@ EOF
     # 设置环境变量
     log_info "设置 Vercel 环境变量..."
     
-    vercel env add NEXT_PUBLIC_SUPABASE_URL production <<< "$SUPABASE_URL"
-    vercel env add NEXT_PUBLIC_SUPABASE_ANON_KEY production <<< "$SUPABASE_ANON_KEY"
-    vercel env add SUPABASE_SERVICE_ROLE_KEY production <<< "$SUPABASE_SERVICE_KEY"
+    $VERCEL_CMD env add NEXT_PUBLIC_SUPABASE_URL production <<< "$SUPABASE_URL"
+    $VERCEL_CMD env add NEXT_PUBLIC_SUPABASE_ANON_KEY production <<< "$SUPABASE_ANON_KEY"
+    $VERCEL_CMD env add SUPABASE_SERVICE_ROLE_KEY production <<< "$SUPABASE_SERVICE_KEY"
     
     if [ -n "$CUSTOM_DOMAIN" ]; then
-        vercel env add NEXT_PUBLIC_APP_URL production <<< "https://$CUSTOM_DOMAIN"
+        $VERCEL_CMD env add NEXT_PUBLIC_APP_URL production <<< "https://$CUSTOM_DOMAIN"
     else
-        vercel env add NEXT_PUBLIC_APP_URL production <<< "https://$VERCEL_PROJECT_NAME.vercel.app"
+        $VERCEL_CMD env add NEXT_PUBLIC_APP_URL production <<< "https://$VERCEL_PROJECT_NAME.vercel.app"
     fi
     
-    vercel env add NEXT_PUBLIC_APP_ENV production <<< "production"
+    $VERCEL_CMD env add NEXT_PUBLIC_APP_ENV production <<< "production"
     
     # 添加可选环境变量
     if [ -n "$UPSTASH_REDIS_URL" ]; then
-        vercel env add UPSTASH_REDIS_REST_URL production <<< "$UPSTASH_REDIS_URL"
-        vercel env add UPSTASH_REDIS_REST_TOKEN production <<< "$UPSTASH_REDIS_TOKEN"
+        $VERCEL_CMD env add UPSTASH_REDIS_REST_URL production <<< "$UPSTASH_REDIS_URL"
+        $VERCEL_CMD env add UPSTASH_REDIS_REST_TOKEN production <<< "$UPSTASH_REDIS_TOKEN"
     fi
     
     if [ -n "$RESEND_API_KEY" ]; then
-        vercel env add RESEND_API_KEY production <<< "$RESEND_API_KEY"
+        $VERCEL_CMD env add RESEND_API_KEY production <<< "$RESEND_API_KEY"
     fi
     
     if [ -n "$SENTRY_DSN" ]; then
-        vercel env add SENTRY_DSN production <<< "$SENTRY_DSN"
+        $VERCEL_CMD env add SENTRY_DSN production <<< "$SENTRY_DSN"
     fi
     
     # 部署到生产环境
     log_info "开始部署到生产环境..."
-    if vercel --prod --confirm; then
+    if $VERCEL_CMD --prod --confirm; then
         log_success "部署到 Vercel 成功"
         
         # 获取部署 URL
-        DEPLOYMENT_URL=$(vercel ls | grep "$VERCEL_PROJECT_NAME" | head -1 | awk '{print $2}')
+        DEPLOYMENT_URL=$($VERCEL_CMD ls | grep "$VERCEL_PROJECT_NAME" | head -1 | awk '{print $2}')
         if [ -n "$DEPLOYMENT_URL" ]; then
             echo -e "${GREEN}🎉 部署成功！${NC}"
             echo -e "${BLUE}访问地址: https://$DEPLOYMENT_URL${NC}"
@@ -438,7 +452,7 @@ setup_custom_domain() {
         cd web
         
         log_info "添加自定义域名: $CUSTOM_DOMAIN"
-        if vercel domains add "$CUSTOM_DOMAIN"; then
+        if $VERCEL_CMD domains add "$CUSTOM_DOMAIN"; then
             log_success "自定义域名配置成功"
             echo -e "${BLUE}请确保将域名的 DNS 记录指向 Vercel${NC}"
         else

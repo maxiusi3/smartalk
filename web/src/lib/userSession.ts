@@ -209,7 +209,7 @@ class UserSessionManager {
         .eq('keyword_id', keywordId)
         .single();
 
-      const progressData = {
+      const progressData: any = {
         user_id: session.userId,
         story_id: storyId,
         keyword_id: keywordId,

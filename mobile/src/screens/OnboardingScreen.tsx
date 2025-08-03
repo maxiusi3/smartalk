@@ -13,6 +13,7 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '@/navigation/AppNavigator';
 import { AnalyticsService } from '@/services/AnalyticsService';
+import { UserService } from '@/services/UserService';
 
 type OnboardingNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -115,7 +116,7 @@ const OnboardingScreen: React.FC = () => {
     ]).start();
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     AnalyticsService.getInstance().track('onboarding_step_completed', {
       stepId: onboardingSteps[currentStep].id,
       stepNumber: currentStep + 1,
@@ -131,18 +132,26 @@ const OnboardingScreen: React.FC = () => {
         totalSteps: onboardingSteps.length,
         timestamp: Date.now(),
       });
-      
-      navigation.replace('InterestSelection');
+
+      // 标记onboarding完成
+      await UserService.getInstance().markOnboardingCompleted();
+
+      // 导航到定级测试
+      navigation.replace('PlacementTest');
     }
   };
 
-  const handleSkip = () => {
+  const handleSkip = async () => {
     AnalyticsService.getInstance().track('onboarding_skipped', {
       skippedAtStep: currentStep + 1,
       totalSteps: onboardingSteps.length,
       timestamp: Date.now(),
     });
-    
+
+    // 即使跳过也标记onboarding完成
+    await UserService.getInstance().markOnboardingCompleted();
+
+    // 跳过定级测试，直接到兴趣选择
     navigation.replace('InterestSelection');
   };
 

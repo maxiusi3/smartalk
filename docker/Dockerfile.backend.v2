@@ -1,0 +1,99 @@
+# SmarTalk V2 Backend Dockerfile
+# Multi-stage build for production optimization
+# Version: 2.0.0
+
+# Build stage
+FROM node:18-alpine AS builder
+
+# Build arguments
+ARG VERSION=v2.0.0
+ARG BUILD_DATE
+ARG V2_FEATURES_ENABLED=true
+
+# Set working directory
+WORKDIR /app
+
+# Install build dependencies
+RUN apk add --no-cache \
+    python3 \
+    make \
+    g++ \
+    git \
+    curl
+
+# Copy package files
+COPY backend/package*.json ./
+COPY backend/prisma ./prisma/
+
+# Install dependencies
+RUN npm ci --only=production && npm cache clean --force
+
+# Copy source code
+COPY backend/src ./src/
+COPY backend/tsconfig.json ./
+COPY backend/.env.example ./
+
+# Build TypeScript
+RUN npm run build
+
+# Generate Prisma client
+RUN npx prisma generate
+
+# Production stage
+FROM node:18-alpine AS production
+
+# Install runtime dependencies
+RUN apk add --no-cache \
+    postgresql-client \
+    redis \
+    curl \
+    ffmpeg \
+    imagemagick
+
+# Create app user
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S smartalk -u 1001
+
+# Set working directory
+WORKDIR /app
+
+# Copy built application
+COPY --from=builder --chown=smartalk:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=smartalk:nodejs /app/dist ./dist
+COPY --from=builder --chown=smartalk:nodejs /app/prisma ./prisma
+COPY --from=builder --chown=smartalk:nodejs /app/package*.json ./
+
+# Copy V2 configuration files
+COPY backend/config/v2-config.json ./config/
+COPY backend/scripts/v2-startup.sh ./scripts/
+
+# Create necessary directories
+RUN mkdir -p /app/uploads /app/content /app/logs /app/temp && \
+    chown -R smartalk:nodejs /app
+
+# Set environment variables
+ENV NODE_ENV=production
+ENV API_VERSION=v2
+ENV V2_FEATURES_ENABLED=true
+ENV VERSION=${VERSION}
+ENV BUILD_DATE=${BUILD_DATE}
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:3001/api/v2/health || exit 1
+
+# Switch to non-root user
+USER smartalk
+
+# Expose port
+EXPOSE 3001
+
+# Start command
+CMD ["node", "dist/index.js"]
+
+# Labels
+LABEL maintainer="SmarTalk Development Team"
+LABEL version=${VERSION}
+LABEL description="SmarTalk V2 Backend API with enhanced features"
+LABEL build-date=${BUILD_DATE}
+LABEL v2-features=${V2_FEATURES_ENABLED}

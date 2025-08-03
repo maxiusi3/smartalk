@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -8,11 +8,13 @@ import {
   ScrollView,
   Animated,
 } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
+// import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '@/navigation/AppNavigator';
 import { AnalyticsService } from '@/services/AnalyticsService';
+import { UserService } from '@/services/UserService';
+import { ApiService } from '@/services/ApiService';
 
 type AchievementRouteProp = RouteProp<RootStackParamList, 'Achievement'>;
 type AchievementNavigationProp = StackNavigationProp<RootStackParamList>;
@@ -25,33 +27,61 @@ interface FeedbackOption {
   sentiment?: 'very_positive' | 'positive' | 'neutral' | 'needs_improvement';
 }
 
-interface EmotionalResponse {
-  comprehensionLevel: string;
-  confidenceLevel: number;
-  emotionalState: string;
-  willingnessToContinue: boolean;
-  additionalComments?: string;
+interface Badge {
+  id: string;
+  name: string;
+  displayName: string;
+  description: string;
+  iconUrl: string;
+  interestId: string;
+  earnedAt?: string;
+}
+
+interface Drama {
+  id: string;
+  title: string;
+  interest: {
+    id: string;
+    name: string;
+    displayName: string;
+    primaryColor: string;
+    secondaryColor: string;
+    badgeName: string;
+  };
 }
 
 const AchievementScreen: React.FC = () => {
   const navigation = useNavigation<AchievementNavigationProp>();
   const route = useRoute<AchievementRouteProp>();
   const { dramaId } = route.params;
-  
+
+  // V2 Magic Moment反馈选项
   const [feedbackOptions, setFeedbackOptions] = useState<FeedbackOption[]>([
-    { id: 'understood_all', text: '我完全听懂了！', emoji: '😍', selected: true, sentiment: 'very_positive' },
-    { id: 'easier_than_expected', text: '比想象的容易！', emoji: '🤩', selected: false, sentiment: 'very_positive' },
-    { id: 'got_main_story', text: '抓住了主线！', emoji: '😊', selected: false, sentiment: 'positive' },
-    { id: 'want_more', text: '想学更多！', emoji: '🔥', selected: false, sentiment: 'very_positive' },
+    { id: 'completely_understood', text: '完全听懂了！', emoji: '🤯', selected: false, sentiment: 'very_positive' },
+    { id: 'more_than_expected', text: '比我想象的听懂更多！', emoji: '😲', selected: false, sentiment: 'very_positive' },
+    { id: 'partially_understood', text: '听懂了一部分', emoji: '🙂', selected: false, sentiment: 'positive' },
   ]);
-  
+
+  const [selectedFeedback, setSelectedFeedback] = useState<string | null>(null);
+  const [showBadgeCeremony, setShowBadgeCeremony] = useState(false);
+  const [earnedBadge, setEarnedBadge] = useState<Badge | null>(null);
+  const [drama, setDrama] = useState<Drama | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loading, setLoading] = useState(true);
+
   const fadeAnim = new Animated.Value(0);
   const slideAnim = new Animated.Value(50);
+  const badgeScaleAnim = new Animated.Value(0);
+  const confettiAnim = new Animated.Value(0);
+
+  const analyticsService = AnalyticsService.getInstance();
+  const userService = UserService.getInstance();
 
   useEffect(() => {
-    // Track achievement screen view
-    AnalyticsService.getInstance().track('achievement_screen_viewed', {
+    loadDramaAndBadge();
+
+    // V2: 记录Magic Moment反馈页面进入
+    analyticsService.track('magic_moment_feedback_started', {
       dramaId,
       timestamp: Date.now(),
     });
@@ -70,13 +100,76 @@ const AchievementScreen: React.FC = () => {
     ]).start();
   }, [dramaId]);
 
+  const loadDramaAndBadge = async () => {
+    try {
+      setLoading(true);
+
+      // 加载剧集信息
+      const dramaData = await ApiService.getDrama(dramaId);
+      setDrama(dramaData);
+
+      // 模拟徽章数据（实际应用中从API获取）
+      const mockBadge: Badge = {
+        id: 'badge_' + dramaData.interestId,
+        name: dramaData.interest?.badgeName || '学习达人',
+        displayName: dramaData.interest?.badgeName || '学习达人',
+        description: `完成${dramaData.title}的学习，获得专业认证！`,
+        iconUrl: '',
+        interestId: dramaData.interestId,
+      };
+
+      setEarnedBadge(mockBadge);
+
+      // 模拟检查用户是否已经获得此徽章
+      const hasBadge = false; // 实际应用中从用户数据检查
+
+      if (!hasBadge) {
+        // 用户首次获得此徽章，准备颁奖仪式
+        setTimeout(() => {
+          setShowBadgeCeremony(true);
+          startBadgeCeremony();
+        }, 2000);
+      }
+
+    } catch (error) {
+      console.error('Error loading drama and badge:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const startBadgeCeremony = () => {
+    // 徽章颁奖动画
+    Animated.sequence([
+      Animated.timing(badgeScaleAnim, {
+        toValue: 1.2,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+      Animated.timing(badgeScaleAnim, {
+        toValue: 1,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    // 庆祝动画
+    Animated.timing(confettiAnim, {
+      toValue: 1,
+      duration: 2000,
+      useNativeDriver: true,
+    }).start();
+  };
+
   const handleFeedbackSelect = (id: string) => {
     const selectedOption = feedbackOptions.find(option => option.id === id);
-    
-    // Track feedback selection
-    AnalyticsService.getInstance().track('achievement_feedback_selected', {
+    setSelectedFeedback(id);
+
+    // V2: 记录Magic Moment反馈选择
+    analyticsService.track('magic_moment_feedback_given', {
       dramaId,
       feedbackId: id,
+      feedbackText: selectedOption?.text,
       sentiment: selectedOption?.sentiment,
       timestamp: Date.now(),
     });
@@ -87,6 +180,30 @@ const AchievementScreen: React.FC = () => {
         selected: option.id === id,
       }))
     );
+
+    // V2: 无论选择什么，都给予正向反馈
+    showEncouragingResponse(selectedOption);
+  };
+
+  const showEncouragingResponse = (selectedOption: FeedbackOption | undefined) => {
+    let encouragingMessage = '';
+
+    switch (selectedOption?.id) {
+      case 'completely_understood':
+        encouragingMessage = '太棒了！你已经达到了语言学习的一个重要里程碑！🎉';
+        break;
+      case 'more_than_expected':
+        encouragingMessage = '这就是语言学习的魔法！你的大脑正在快速适应！✨';
+        break;
+      case 'partially_understood':
+        encouragingMessage = '很好的开始！每一次理解都是进步，继续保持！💪';
+        break;
+      default:
+        encouragingMessage = '你做得很好！继续这样的学习节奏！🌟';
+    }
+
+    // 这里可以显示鼓励消息的模态框
+    console.log('Encouraging message:', encouragingMessage);
   };
 
   const handleContinue = async () => {
@@ -149,11 +266,59 @@ const AchievementScreen: React.FC = () => {
     }
   };
 
+  const renderBadgeCeremony = () => {
+    if (!showBadgeCeremony || !earnedBadge || !drama) return null;
+
+    return (
+      <View style={styles.badgeCeremonyOverlay}>
+        <View style={styles.badgeCeremonyContainer}>
+          <Animated.View
+            style={[
+              styles.badgeContainer,
+              { transform: [{ scale: badgeScaleAnim }] }
+            ]}
+          >
+            <Text style={styles.badgeIcon}>🏆</Text>
+            <Text style={styles.badgeTitle}>恭喜获得徽章！</Text>
+            <Text style={[styles.badgeName, { color: drama.interest.primaryColor }]}>
+              {drama.interest.badgeName}
+            </Text>
+            <Text style={styles.badgeDescription}>
+              {earnedBadge.description}
+            </Text>
+          </Animated.View>
+
+          <TouchableOpacity
+            style={[styles.continueButton, { backgroundColor: drama.interest.primaryColor }]}
+            onPress={() => setShowBadgeCeremony(false)}
+          >
+            <Text style={styles.continueButtonText}>继续</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* 庆祝粒子效果 */}
+        <Animated.View
+          style={[
+            styles.confettiContainer,
+            { opacity: confettiAnim }
+          ]}
+        >
+          <Text style={styles.confetti}>🎉✨🎊✨🎉</Text>
+        </Animated.View>
+      </View>
+    );
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text style={styles.loadingText}>准备成就反馈...</Text>
+      </View>
+    );
+  }
+
   return (
-    <LinearGradient
-      colors={['#f8fafc', '#e2e8f0']}
-      style={styles.container}
-    >
+    <View style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <Animated.View
@@ -165,23 +330,13 @@ const AchievementScreen: React.FC = () => {
               },
             ]}
           >
-            {/* Celebration Icon */}
+            {/* V2 Magic Moment庆祝 */}
             <View style={styles.celebrationContainer}>
-              <Animated.Text 
-                style={[
-                  styles.celebrationIcon,
-                  {
-                    transform: [{
-                      translateY: fadeAnim.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [0, -10],
-                      })
-                    }]
-                  }
-                ]}
-              >
-                🎉
-              </Animated.Text>
+              <Text style={styles.magicMomentIcon}>✨</Text>
+              <Text style={styles.magicMomentTitle}>Magic Moment!</Text>
+              <Text style={styles.magicMomentSubtitle}>
+                你刚刚体验了语言学习的魔法时刻
+              </Text>
             </View>
             
             {/* Title and Description */}
@@ -196,9 +351,12 @@ const AchievementScreen: React.FC = () => {
               </Text>
             </View>
             
-            {/* Feedback Options */}
+            {/* V2 Feedback Options */}
             <View style={styles.feedbackContainer}>
-              <Text style={styles.feedbackTitle}>你的感受如何？</Text>
+              <Text style={styles.feedbackTitle}>你的理解程度如何？</Text>
+              <Text style={styles.feedbackSubtitle}>
+                无论选择什么，你都已经取得了很大的进步！
+              </Text>
               <View style={styles.feedbackOptions}>
                 {feedbackOptions.map(option => (
                   <TouchableOpacity
@@ -212,9 +370,25 @@ const AchievementScreen: React.FC = () => {
                     <Text style={styles.feedbackText}>
                       {option.emoji} {option.text}
                     </Text>
+                    {option.selected && (
+                      <View style={styles.selectedIndicator}>
+                        <Text style={styles.selectedCheckmark}>✓</Text>
+                      </View>
+                    )}
                   </TouchableOpacity>
                 ))}
               </View>
+
+              {/* V2 鼓励性反馈 */}
+              {selectedFeedback && (
+                <View style={styles.encouragementContainer}>
+                  <Text style={styles.encouragementText}>
+                    {selectedFeedback === 'completely_understood' && '太棒了！你已经达到了语言学习的一个重要里程碑！🎉'}
+                    {selectedFeedback === 'more_than_expected' && '这就是语言学习的魔法！你的大脑正在快速适应！✨'}
+                    {selectedFeedback === 'partially_understood' && '很好的开始！每一次理解都是进步，继续保持！💪'}
+                  </Text>
+                </View>
+              )}
             </View>
           </Animated.View>
 
@@ -250,21 +424,19 @@ const AchievementScreen: React.FC = () => {
             onPress={handleContinue}
             disabled={isSubmitting}
           >
-            <LinearGradient
-              colors={isSubmitting ? ['#e2e8f0', '#e2e8f0'] : ['#667eea', '#764ba2']}
-              style={styles.continueButtonGradient}
-            >
-              <Text style={[
-                styles.buttonText,
-                isSubmitting && styles.buttonTextDisabled
-              ]}>
-                {isSubmitting ? '正在保存...' : '继续学习之旅'}
-              </Text>
-            </LinearGradient>
+            <Text style={[
+              styles.buttonText,
+              isSubmitting && styles.buttonTextDisabled
+            ]}>
+              {isSubmitting ? '正在保存...' : '继续学习之旅'}
+            </Text>
           </TouchableOpacity>
         </ScrollView>
       </SafeAreaView>
-    </LinearGradient>
+
+      {/* V2 徽章颁奖仪式 */}
+      {renderBadgeCeremony()}
+    </View>
   );
 };
 
@@ -426,6 +598,126 @@ const styles = StyleSheet.create({
   },
   buttonTextDisabled: {
     color: '#9ca3af',
+  },
+  // V2 新增样式
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f8fafc',
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#64748b',
+  },
+  magicMomentIcon: {
+    fontSize: 48,
+    marginBottom: 8,
+  },
+  magicMomentTitle: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#1e293b',
+    marginBottom: 8,
+  },
+  magicMomentSubtitle: {
+    fontSize: 16,
+    color: '#64748b',
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+  feedbackSubtitle: {
+    fontSize: 14,
+    color: '#64748b',
+    textAlign: 'center',
+    marginBottom: 20,
+    fontStyle: 'italic',
+  },
+  selectedIndicator: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: '#10b981',
+    borderRadius: 12,
+    width: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  selectedCheckmark: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  encouragementContainer: {
+    backgroundColor: '#f0fdf4',
+    padding: 16,
+    borderRadius: 12,
+    marginTop: 16,
+    borderLeftWidth: 4,
+    borderLeftColor: '#10b981',
+  },
+  encouragementText: {
+    fontSize: 16,
+    color: '#166534',
+    fontWeight: '500',
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+  badgeCeremonyOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  badgeCeremonyContainer: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    padding: 32,
+    marginHorizontal: 24,
+    alignItems: 'center',
+    maxWidth: 400,
+  },
+  badgeContainer: {
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  badgeIcon: {
+    fontSize: 64,
+    marginBottom: 16,
+  },
+  badgeTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#1e293b',
+    marginBottom: 8,
+  },
+  badgeName: {
+    fontSize: 20,
+    fontWeight: '600',
+    marginBottom: 12,
+  },
+  badgeDescription: {
+    fontSize: 16,
+    color: '#64748b',
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+  confettiContainer: {
+    position: 'absolute',
+    top: 100,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+  },
+  confetti: {
+    fontSize: 32,
+    letterSpacing: 8,
   },
 });
 

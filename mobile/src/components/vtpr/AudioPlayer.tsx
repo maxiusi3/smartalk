@@ -7,8 +7,26 @@ import {
   Animated,
   Alert,
 } from 'react-native';
-import { AudioPlayerProps, AudioState } from '@/types/vtpr.types';
-import { VTPR_THEME, VTPR_TEXTS } from '@/constants/vtpr';
+// V2 增强的AudioPlayer接口
+interface AudioPlayerProps {
+  audioUrl: string;
+  word: string;
+  pronunciation?: string;
+  slowMode?: boolean;
+  autoPlay?: boolean;
+  onPlayStateChange?: (isPlaying: boolean) => void;
+  onPlayComplete?: () => void;
+}
+
+interface AudioState {
+  isPlaying: boolean;
+  isPaused: boolean;
+  isLoading: boolean;
+  duration: number;
+  currentTime: number;
+  volume: number;
+  playbackRate: number;
+}
 
 /**
  * AudioPlayer组件
@@ -16,12 +34,12 @@ import { VTPR_THEME, VTPR_TEXTS } from '@/constants/vtpr';
  */
 const AudioPlayer: React.FC<AudioPlayerProps> = ({
   audioUrl,
+  word,
+  pronunciation,
+  slowMode = false,
   autoPlay = true,
   onPlayStateChange,
   onPlayComplete,
-  showControls = true,
-  volume = 0.8,
-  playbackRate = 1.0,
 }) => {
   const [audioState, setAudioState] = useState<AudioState>({
     isPlaying: false,

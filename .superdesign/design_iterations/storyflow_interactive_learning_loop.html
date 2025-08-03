@@ -1,0 +1,215 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StoryFlow - Interactive Learning Loop</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700&family=Inter:wght@400;500;700&family=Roboto+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="theme_storyflow_3.css">
+
+    <style>
+        body { background-color: var(--background); color: var(--foreground); font-family: var(--font-sans); letter-spacing: var(--tracking-normal); }
+        .progress-indicator { background-color: var(--muted); color: var(--muted-foreground); border-radius: 9999px; padding: 0.5rem 1rem; font-weight: 500; display: flex; align-items: center; gap: 0.5rem; }
+        .video-option { border: 2px solid var(--border); border-radius: var(--radius); overflow: hidden; cursor: pointer; transition: all 0.2s ease-out; aspect-ratio: 16 / 10; }
+        .video-option:hover { border-color: var(--primary); transform: scale(1.03); box-shadow: var(--shadow-lg); }
+        .play-button { background-color: var(--card); border: 1px solid var(--border); border-radius: 9999px; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease-out; box-shadow: var(--shadow-md); }
+        .play-button:hover { transform: scale(1.1); box-shadow: var(--shadow-lg); background-color: var(--primary); color: var(--primary-foreground); }
+        .context-video { border: 2px solid var(--border); border-radius: var(--radius); overflow: hidden; aspect-ratio: 16 / 10; width: 100%; max-width: 480px; box-shadow: var(--shadow-lg); }
+        .action-button { background-color: var(--card); border: 1px solid var(--border); border-radius: 9999px; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease-out; box-shadow: var(--shadow-md); }
+        .mic-button { background-color: var(--primary); color: var(--primary-foreground); border-radius: 9999px; width: 100px; height: 100px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease-out; box-shadow: var(--shadow-xl); animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        .overlay { position: fixed; inset: 0; background-color: oklch(0.1 0.01 240 / 0.5); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; padding: 1rem; z-index: 50; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+        .overlay.visible { opacity: 1; pointer-events: auto; }
+        .card-modal { background-color: var(--card); border-radius: var(--radius); padding: 2rem; width: 100%; max-width: 400px; text-align: center; box-shadow: var(--shadow-2xl); transform: scale(0.95); transition: transform 0.3s ease; }
+        .overlay.visible .card-modal { transform: scale(1); }
+        .feedback-toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); background-color: var(--foreground); color: var(--background); padding: 0.75rem 1.5rem; border-radius: 9999px; box-shadow: var(--shadow-xl); z-index: 100; opacity: 0; transition: all 0.3s ease; }
+        .feedback-toast.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+        .shake { animation: shake 0.5s; }
+        @keyframes shake { 10%, 90% { transform: translateX(-1px); } 20%, 80% { transform: translateX(2px); } 30%, 50%, 70% { transform: translateX(-4px); } 40%, 60% { transform: translateX(4px); } }
+        .highlight-correct { box-shadow: 0 0 20px 5px oklch(0.85 0.15 90 / 0.7); border-color: oklch(0.85 0.15 90); }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Main Container -->
+    <div id="main-container" class="min-h-screen p-4 sm:p-6 flex flex-col">
+        <!-- Header -->
+        <header class="flex justify-between items-center w-full max-w-4xl mx-auto">
+            <a href="storyflow_mvp_3.html" class="w-10 h-10 bg-muted rounded-full flex items-center justify-center cursor-pointer hover:bg-border transition-colors">
+                <i data-lucide="x" class="w-6 h-6 text-muted-foreground"></i>
+            </a>
+            <div class="progress-indicator">
+                <i data-lucide="key-round" class="w-5 h-5" style="color: var(--accent);"></i>
+                <span id="progress-text">1 / 15</span>
+            </div>
+        </header>
+
+        <!-- Screen Content Area -->
+        <div id="screen-content" class="flex-grow flex flex-col justify-center items-center w-full max-w-5xl mx-auto mt-4 px-4">
+            <!-- Content will be injected here by JS -->
+        </div>
+    </div>
+
+    <!-- Overlays -->
+    <div id="focus-mode-overlay" class="overlay">
+        <div class="card-modal">
+            <i data-lucide="eye" class="w-10 h-10 mx-auto" style="color: var(--primary);"></i>
+            <h2 class="text-xl font-bold mt-4">Focus Mode</h2>
+            <p class="mt-2" style="color: var(--muted-foreground);">Don't worry, let's slow down. The correct answer is highlighted. Listen again and select it.</p>
+        </div>
+    </div>
+
+    <div id="rescue-mode-overlay" class="overlay">
+        <div class="card-modal">
+            <i data-lucide="life-buoy" class="w-10 h-10 mx-auto" style="color: var(--primary);"></i>
+            <h2 class="text-xl font-bold mt-4">Rescue Mode</h2>
+            <p class="mt-2" style="color: var(--muted-foreground);">It happens! Watch the mouth movement carefully and try again.</p>
+            <div class="my-4 bg-muted rounded-lg aspect-square w-48 mx-auto flex items-center justify-center">
+                 <i data-lucide="user-circle-2" class="w-20 h-20" style="color: var(--muted-foreground);"></i>
+            </div>
+            <button id="rescue-mode-button" class="bg-primary text-primary-foreground rounded-full py-3 px-6 font-semibold">Got it, let's try again!</button>
+        </div>
+    </div>
+
+    <!-- Feedback Toast -->
+    <div id="feedback-toast" class="feedback-toast"></div>
+    
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+
+            const state = {
+                contextGuessAttempts: 0,
+                pronunciationAttempts: 0,
+                currentScreen: 'context-guessing'
+            };
+
+            const screenContent = document.getElementById('screen-content');
+            const progressText = document.getElementById('progress-text');
+            const toast = document.getElementById('feedback-toast');
+            const focusModeOverlay = document.getElementById('focus-mode-overlay');
+            const rescueModeOverlay = document.getElementById('rescue-mode-overlay');
+
+            function showToast(message, duration = 2000) {
+                toast.textContent = message;
+                toast.classList.add('visible');
+                setTimeout(() => {
+                    toast.classList.remove('visible');
+                }, duration);
+            }
+
+            function renderContextGuessingScreen() {
+                state.currentScreen = 'context-guessing';
+                progressText.textContent = '1 / 15';
+                screenContent.innerHTML = `
+                    <div class="flex justify-center items-center py-8 md:py-12">
+                        <div class="play-button"><i data-lucide="play" class="w-10 h-10 ml-1"></i></div>
+                    </div>
+                    <div class="w-full grid grid-cols-1 sm:grid-cols-3 gap-6 md:gap-8">
+                        <div class="video-option" data-correct="false"><img src="https://placehold.co/600x400/1a1a1a/ffffff?text=Scene+A" class="w-full h-full object-cover"></div>
+                        <div class="video-option" data-correct="true"><img src="https://placehold.co/600x400/3a3a3a/ffffff?text=Scene+B" class="w-full h-full object-cover"></div>
+                        <div class="video-option" data-correct="false"><img src="https://placehold.co/600x400/5a5a5a/ffffff?text=Scene+C" class="w-full h-full object-cover"></div>
+                    </div>
+                `;
+                lucide.createIcons();
+                document.querySelectorAll('.video-option').forEach(el => {
+                    el.addEventListener('click', handleContextGuess);
+                });
+            }
+
+            function handleContextGuess(event) {
+                const selected = event.currentTarget;
+                const isCorrect = selected.dataset.correct === 'true';
+
+                if (isCorrect) {
+                    showToast('Bingo!', 1500);
+                    selected.style.borderColor = 'var(--accent)';
+                    setTimeout(() => {
+                        state.contextGuessAttempts = 0;
+                        renderPronunciationScreen();
+                    }, 1500);
+                } else {
+                    state.contextGuessAttempts++;
+                    selected.classList.add('shake');
+                    setTimeout(() => selected.classList.remove('shake'), 500);
+                    
+                    if (state.contextGuessAttempts >= 2) {
+                        showToast('Let's take a closer look.', 2000);
+                        setTimeout(enterFocusMode, 500);
+                    } else {
+                        showToast('Not quite, try again!', 2000);
+                    }
+                }
+            }
+
+            function enterFocusMode() {
+                focusModeOverlay.classList.add('visible');
+                const correctOption = document.querySelector('.video-option[data-correct="true"]');
+                correctOption.classList.add('highlight-correct');
+                correctOption.addEventListener('click', () => {
+                    focusModeOverlay.classList.remove('visible');
+                    correctOption.classList.remove('highlight-correct');
+                    // Also proceed to the next step after clicking the correct one in focus mode
+                    handleContextGuess({ currentTarget: correctOption });
+                }, { once: true });
+            }
+
+            function renderPronunciationScreen() {
+                state.currentScreen = 'pronunciation';
+                progressText.textContent = '2 / 15';
+                screenContent.innerHTML = `
+                    <div class="flex flex-col items-center w-full space-y-8">
+                        <div class="context-video"><img src="https://placehold.co/600x400/3a3a3a/ffffff?text=Scene+B" class="w-full h-full object-cover"></div>
+                        <div class="action-button"><i data-lucide="volume-2" class="w-10 h-10"></i></div>
+                    </div>
+                    <div class="flex-grow flex items-center justify-center py-12">
+                        <div id="mic-button" class="mic-button"><i data-lucide="mic" class="w-12 h-12"></i></div>
+                    </div>
+                    <div class="text-center my-4 p-2 border-2 border-dashed rounded-lg">
+                        <p class="text-sm mb-2" style="color: var(--muted-foreground);">This is a simulation. Click to test outcomes:</p>
+                        <button id="sim-good" class="bg-green-500 text-white rounded-full px-4 py-1 text-sm">Simulate >85%</button>
+                        <button id="sim-bad" class="bg-red-500 text-white rounded-full px-4 py-1 text-sm">Simulate <85%</button>
+                    </div>
+                `;
+                lucide.createIcons();
+                document.getElementById('sim-good').addEventListener('click', () => handlePronunciation(true));
+                document.getElementById('sim-bad').addEventListener('click', () => handlePronunciation(false));
+            }
+
+            function handlePronunciation(isSuccess) {
+                if (isSuccess) {
+                    showToast('Perfect! ✨', 2000);
+                    setTimeout(() => {
+                        state.pronunciationAttempts = 0;
+                        renderContextGuessingScreen();
+                    }, 2000);
+                } else {
+                    state.pronunciationAttempts++;
+                    if (state.pronunciationAttempts >= 3) {
+                        enterRescueMode();
+                    } else {
+                        showToast(`Score: 75. Try again! (Attempt ${state.pronunciationAttempts})`, 2000);
+                    }
+                }
+            }
+
+            function enterRescueMode() {
+                rescueModeOverlay.classList.add('visible');
+                document.getElementById('rescue-mode-button').addEventListener('click', () => {
+                    rescueModeOverlay.classList.remove('visible');
+                    state.pronunciationAttempts = 0;
+                    showToast('Great job! Let's move on.', 2000);
+                    setTimeout(renderContextGuessingScreen, 2000);
+                }, { once: true });
+            }
+
+            renderContextGuessingScreen();
+        });
+    </script>
+</body>
+</html>

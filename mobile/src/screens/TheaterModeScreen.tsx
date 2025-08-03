@@ -13,6 +13,8 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import Video from 'react-native-video';
 import { RootStackParamList } from '@/navigation/AppNavigator';
 import { ApiService } from '@/services/ApiService';
+import { AnalyticsService } from '@/services/AnalyticsService';
+import { UserService } from '@/services/UserService';
 import { useAppStore } from '@/store/useAppStore';
 
 type TheaterModeRouteProp = RouteProp<RootStackParamList, 'TheaterMode'>;
@@ -29,17 +31,40 @@ const TheaterModeScreen: React.FC = () => {
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [controlsVisible, setControlsVisible] = useState(true);
   const [completed, setCompleted] = useState(false);
-  
+
+  // V2 Magic Moment 增强状态
+  const [showComprehensionTest, setShowComprehensionTest] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [comprehensionTriggered, setComprehensionTriggered] = useState(false);
+  const [vignetteVisible, setVignetteVisible] = useState(true);
+
   const fadeAnim = useRef(new Animated.Value(1)).current;
+  const vignetteAnim = useRef(new Animated.Value(0)).current;
   const videoRef = useRef<Video>(null);
+
+  const analyticsService = AnalyticsService.getInstance();
+  const userService = UserService.getInstance();
 
   useEffect(() => {
     // Hide status bar for immersive experience
     StatusBar.setHidden(true);
-    
+
+    // V2: 启动暗角效果
+    Animated.timing(vignetteAnim, {
+      toValue: 1,
+      duration: 1000,
+      useNativeDriver: true,
+    }).start();
+
+    // V2: 记录Theater Mode开始事件
+    analyticsService.track('theater_mode_started', {
+      dramaId,
+      timestamp: Date.now(),
+    });
+
     // Load video content
     loadContent();
-    
+
     // Auto-hide controls after delay
     const timer = setTimeout(() => {
       hideControls();
@@ -124,6 +149,67 @@ const TheaterModeScreen: React.FC = () => {
     }
   };
 
+  // V2: 视频进度处理，触发理解测试
+  const handleVideoProgress = (data: { currentTime: number; playableDuration: number }) => {
+    setCurrentTime(data.currentTime);
+
+    // 30秒时触发理解测试
+    if (data.currentTime >= 30 && !comprehensionTriggered) {
+      setComprehensionTriggered(true);
+      triggerComprehensionTest();
+    }
+  };
+
+  // V2: 触发理解测试
+  const triggerComprehensionTest = () => {
+    setShowComprehensionTest(true);
+
+    analyticsService.track('comprehension_test_triggered', {
+      dramaId,
+      videoTime: currentTime,
+      timestamp: Date.now(),
+    });
+  };
+
+  // V2: 处理理解测试回应
+  const handleComprehensionResponse = (understood: boolean) => {
+    analyticsService.track('comprehension_response', {
+      dramaId,
+      understood,
+      videoTime: currentTime,
+      timestamp: Date.now(),
+    });
+
+    setShowComprehensionTest(false);
+
+    if (understood) {
+      // 用户理解了，显示成功消息
+      showMagicMomentSuccess();
+    } else {
+      // 用户没理解，提供帮助选项
+      showHelpOptions();
+    }
+  };
+
+  // V2: 显示Magic Moment成功消息
+  const showMagicMomentSuccess = () => {
+    analyticsService.track('magic_moment_completed', {
+      dramaId,
+      timestamp: Date.now(),
+    });
+
+    // 这里可以显示成功的模态框或导航到成就页面
+    setTimeout(() => {
+      navigation.navigate('Achievement', { dramaId });
+    }, 2000);
+  };
+
+  // V2: 显示帮助选项
+  const showHelpOptions = () => {
+    // 这里可以提供重播、显示字幕等选项
+    console.log('Showing help options for user');
+  };
+
   const handleVideoEnd = () => {
     setCompleted(true);
     navigation.navigate('Achievement', { dramaId });
@@ -167,11 +253,23 @@ const TheaterModeScreen: React.FC = () => {
             resizeMode="contain"
             onEnd={handleVideoEnd}
             onError={() => setError('Video playback error')}
+            onProgress={handleVideoProgress}
             controls={false}
+            paused={showComprehensionTest}
+          />
+        )}
+
+        {/* V2: 暗角效果 */}
+        {vignetteVisible && (
+          <Animated.View
+            style={[
+              styles.vignette,
+              { opacity: vignetteAnim }
+            ]}
           />
         )}
       </TouchableOpacity>
-      
+
       {controlsVisible && (
         <Animated.View style={[styles.controls, { opacity: fadeAnim }]}>
           <TouchableOpacity style={styles.closeButton} onPress={handleClose}>
@@ -181,6 +279,34 @@ const TheaterModeScreen: React.FC = () => {
             <Text style={styles.theaterModeText}>剧场模式</Text>
           </View>
         </Animated.View>
+      )}
+
+      {/* V2: 理解测试覆盖层 */}
+      {showComprehensionTest && (
+        <View style={styles.comprehensionOverlay}>
+          <View style={styles.comprehensionContainer}>
+            <Text style={styles.comprehensionTitle}>理解检测</Text>
+            <Text style={styles.comprehensionQuestion}>
+              你能理解刚才的对话内容吗？
+            </Text>
+
+            <View style={styles.comprehensionButtons}>
+              <TouchableOpacity
+                style={[styles.comprehensionButton, styles.yesButton]}
+                onPress={() => handleComprehensionResponse(true)}
+              >
+                <Text style={styles.yesButtonText}>能理解 ✓</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.comprehensionButton, styles.noButton]}
+                onPress={() => handleComprehensionResponse(false)}
+              >
+                <Text style={styles.noButtonText}>需要帮助</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
       )}
     </View>
   );
@@ -328,6 +454,77 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   retryText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  // V2 新增样式
+  vignette: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'transparent',
+    borderWidth: 60,
+    borderColor: 'rgba(0, 0, 0, 0.3)',
+    pointerEvents: 'none',
+  },
+  comprehensionOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 200,
+  },
+  comprehensionContainer: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 32,
+    marginHorizontal: 24,
+    alignItems: 'center',
+    maxWidth: 400,
+  },
+  comprehensionTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#1e293b',
+    marginBottom: 16,
+  },
+  comprehensionQuestion: {
+    fontSize: 18,
+    color: '#64748b',
+    textAlign: 'center',
+    marginBottom: 32,
+    lineHeight: 24,
+  },
+  comprehensionButtons: {
+    flexDirection: 'row',
+    gap: 16,
+  },
+  comprehensionButton: {
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    minWidth: 120,
+    alignItems: 'center',
+  },
+  yesButton: {
+    backgroundColor: '#10b981',
+  },
+  noButton: {
+    backgroundColor: '#f59e0b',
+  },
+  yesButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  noButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',

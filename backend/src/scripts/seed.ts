@@ -54,9 +54,13 @@ async function main() {
     await prisma.$connect();
     console.log('✅ Database connection successful');
 
-    // 清理现有数据（开发环境）
+    // 清理现有数据（开发环境）- V2增强版
     if (process.env.NODE_ENV === 'development') {
-      console.log('🧹 Cleaning existing data...');
+      console.log('🧹 Cleaning existing V2 data...');
+      await prisma.pronunciationAssessment.deleteMany();
+      await prisma.srsQueue.deleteMany();
+      await prisma.userBadge.deleteMany();
+      await prisma.badge.deleteMany();
       await prisma.analyticsEvent.deleteMany();
       await prisma.userProgress.deleteMany();
       await prisma.keywordVideoClip.deleteMany();
@@ -70,39 +74,77 @@ async function main() {
     console.log('📝 This is normal for development without PostgreSQL setup');
   }
 
-  // 创建兴趣主题数据结构
-  console.log('📚 Preparing interests data...');
+  // 创建兴趣主题数据结构 - V2增强版
+  console.log('📚 Preparing interests data with V2 enhancements...');
   const interestsData = [
     {
       name: 'travel',
       displayName: '像当地人一样旅行',
       description: '学会在旅行中自信地与当地人交流，体验真正的文化沉浸',
       iconUrl: '/images/interests/travel.png',
-      sortOrder: 1
+      sortOrder: 1,
+      // V2 主题特定配置
+      primaryColor: '#2196F3', // Sky Blue
+      secondaryColor: '#FF9800', // Sunset Orange
+      badgeName: '旅行生存家'
     },
     {
       name: 'movies',
       displayName: '无字幕刷原声大片',
       description: '享受不依赖字幕观看英文电影的乐趣，深度理解文化内涵',
       iconUrl: '/images/interests/movies.png',
-      sortOrder: 2
+      sortOrder: 2,
+      // V2 主题特定配置
+      primaryColor: '#673AB7', // Deep Purple
+      secondaryColor: '#FFC107', // Gold
+      badgeName: '电影达人'
     },
     {
       name: 'workplace',
       displayName: '在职场自信沟通',
       description: '掌握职场英语沟通技巧，在国际化工作环境中游刃有余',
       iconUrl: '/images/interests/workplace.png',
-      sortOrder: 3
+      sortOrder: 3,
+      // V2 主题特定配置
+      primaryColor: '#1976D2', // Business Blue
+      secondaryColor: '#90A4AE', // Silver
+      badgeName: '职场精英'
     }
   ];
 
   let interests = [];
   try {
     interests = await Promise.all(interestsData.map(data => prisma.interest.create({ data })));
-    console.log(`✅ Created ${interests.length} interests`);
+    console.log(`✅ Created ${interests.length} interests with V2 theme configurations`);
   } catch (error) {
     console.log('📝 Interests data structure prepared (database not available)');
     interests = interestsData.map((data, index) => ({ ...data, id: `interest-${index + 1}` }));
+  }
+
+  // 创建主题徽章
+  console.log('🏆 Creating theme-specific badges...');
+  let badges = [];
+  try {
+    const badgesData = interests.map((interest, index) => ({
+      name: `${interest.name}_master`,
+      displayName: interestsData[index].badgeName,
+      description: `完成${interest.displayName}主题的第一个章节`,
+      iconUrl: `/images/badges/${interest.name}_badge.png`,
+      interestId: interest.id
+    }));
+
+    badges = await Promise.all(badgesData.map(data => prisma.badge.create({ data })));
+    console.log(`✅ Created ${badges.length} theme badges`);
+  } catch (error) {
+    console.log('📝 Badges data structure prepared (database not available)');
+    badges = interests.map((interest, index) => ({
+      id: `badge-${index + 1}`,
+      name: `${interest.name}_master`,
+      displayName: interestsData[index].badgeName,
+      description: `完成${interest.displayName}主题的第一个章节`,
+      iconUrl: `/images/badges/${interest.name}_badge.png`,
+      interestId: interest.id
+    }));
   }
 
   // 为每个兴趣创建示例剧集数据
@@ -164,59 +206,208 @@ async function main() {
 
 
 
-  // 为所有剧集创建完整的关键词汇数据（15个词汇/主题）
-  console.log('🔑 Preparing comprehensive keywords data...');
+  // 为所有剧集创建完整的关键词汇数据（每个剧集5个核心词汇 - V2要求）
+  console.log('🔑 Preparing V2 keywords data (5 core keywords per drama)...');
   const keywordsData = [
-    // 旅行主题 - 15个词汇
-    { word: 'excuse', translation: '打扰', audioUrl: '/audio/travel/excuse.mp3', start: 2.5, end: 3.2, dramaIndex: 0 },
-    { word: 'table', translation: '桌子', audioUrl: '/audio/travel/table.mp3', start: 5.1, end: 5.8, dramaIndex: 0 },
-    { word: 'available', translation: '可用的', audioUrl: '/audio/travel/available.mp3', start: 8.3, end: 9.1, dramaIndex: 0 },
-    { word: 'certainly', translation: '当然', audioUrl: '/audio/travel/certainly.mp3', start: 12.0, end: 12.8, dramaIndex: 0 },
-    { word: 'tourist', translation: '游客', audioUrl: '/audio/travel/tourist.mp3', start: 15.5, end: 16.2, dramaIndex: 0 },
-    { word: 'coffee', translation: '咖啡', audioUrl: '/audio/travel/coffee.mp3', start: 18.0, end: 18.7, dramaIndex: 0 },
-    { word: 'order', translation: '点餐', audioUrl: '/audio/travel/order.mp3', start: 22.3, end: 23.0, dramaIndex: 0 },
-    { word: 'menu', translation: '菜单', audioUrl: '/audio/travel/menu.mp3', start: 26.5, end: 27.2, dramaIndex: 0 },
-    { word: 'waiter', translation: '服务员', audioUrl: '/audio/travel/waiter.mp3', start: 30.1, end: 30.8, dramaIndex: 0 },
-    { word: 'bill', translation: '账单', audioUrl: '/audio/travel/bill.mp3', start: 34.2, end: 34.9, dramaIndex: 0 },
-    { word: 'please', translation: '请', audioUrl: '/audio/travel/please.mp3', start: 38.0, end: 38.6, dramaIndex: 0 },
-    { word: 'thank', translation: '谢谢', audioUrl: '/audio/travel/thank.mp3', start: 42.1, end: 42.8, dramaIndex: 0 },
-    { word: 'help', translation: '帮助', audioUrl: '/audio/travel/help.mp3', start: 46.3, end: 47.0, dramaIndex: 0 },
-    { word: 'direction', translation: '方向', audioUrl: '/audio/travel/direction.mp3', start: 50.5, end: 51.3, dramaIndex: 0 },
-    { word: 'hotel', translation: '酒店', audioUrl: '/audio/travel/hotel.mp3', start: 54.2, end: 54.9, dramaIndex: 0 },
+    // 旅行主题 - 5个核心词汇
+    {
+      word: 'excuse',
+      translation: '打扰',
+      pronunciation: '/ɪkˈskjuːz/',
+      audioUrl: '/audio/travel/excuse.mp3',
+      start: 2.5,
+      end: 3.2,
+      dramaIndex: 0,
+      rescueVideoUrl: '/videos/rescue/excuse_mouth.mp4',
+      phoneticTips: '["舌头轻触上齿", "注意s和z的区别"]',
+      contextClues: '["用于礼貌地打断或引起注意", "通常用在句子开头"]',
+      highlightEffect: 'bounce'
+    },
+    {
+      word: 'table',
+      translation: '桌子',
+      pronunciation: '/ˈteɪbəl/',
+      audioUrl: '/audio/travel/table.mp3',
+      start: 5.1,
+      end: 5.8,
+      dramaIndex: 0,
+      rescueVideoUrl: '/videos/rescue/table_mouth.mp4',
+      phoneticTips: '["t音要清晰", "注意重音在第一个音节"]',
+      contextClues: '["指代餐桌或工作台", "可数名词"]',
+      highlightEffect: 'glow'
+    },
+    {
+      word: 'available',
+      translation: '可用的',
+      pronunciation: '/əˈveɪləbəl/',
+      audioUrl: '/audio/travel/available.mp3',
+      start: 8.3,
+      end: 9.1,
+      dramaIndex: 0,
+      rescueVideoUrl: '/videos/rescue/available_mouth.mp4',
+      phoneticTips: '["重音在第二个音节", "注意弱读音节"]',
+      contextClues: '["表示可获得的或空闲的", "常用于询问是否有空"]',
+      highlightEffect: 'pulse'
+    },
+    {
+      word: 'certainly',
+      translation: '当然',
+      pronunciation: '/ˈsɜːrtənli/',
+      audioUrl: '/audio/travel/certainly.mp3',
+      start: 12.0,
+      end: 12.8,
+      dramaIndex: 0,
+      rescueVideoUrl: '/videos/rescue/certainly_mouth.mp4',
+      phoneticTips: '["r音要卷舌", "重音在第一个音节"]',
+      contextClues: '["表示肯定的回答", "比yes更正式"]',
+      highlightEffect: 'bounce'
+    },
+    {
+      word: 'tourist',
+      translation: '游客',
+      pronunciation: '/ˈtʊrɪst/',
+      audioUrl: '/audio/travel/tourist.mp3',
+      start: 15.5,
+      end: 16.2,
+      dramaIndex: 0,
+      rescueVideoUrl: '/videos/rescue/tourist_mouth.mp4',
+      phoneticTips: '["oo音要短促", "重音在第一个音节"]',
+      contextClues: '["指代旅游者", "可数名词"]',
+      highlightEffect: 'glow'
+    },
+    // 电影主题 - 5个核心词汇
+    {
+      word: 'movie',
+      translation: '电影',
+      pronunciation: '/ˈmuːvi/',
+      audioUrl: '/audio/movies/movie.mp3',
+      start: 3.0,
+      end: 3.7,
+      dramaIndex: 1,
+      rescueVideoUrl: '/videos/rescue/movie_mouth.mp4',
+      phoneticTips: '["oo音要长", "v音要轻咬下唇"]',
+      contextClues: '["指代电影作品", "可数名词"]',
+      highlightEffect: 'bounce'
+    },
+    {
+      word: 'ticket',
+      translation: '票',
+      pronunciation: '/ˈtɪkɪt/',
+      audioUrl: '/audio/movies/ticket.mp3',
+      start: 6.2,
+      end: 6.9,
+      dramaIndex: 1,
+      rescueVideoUrl: '/videos/rescue/ticket_mouth.mp4',
+      phoneticTips: '["两个t音都要清晰", "重音在第一个音节"]',
+      contextClues: '["入场券", "可数名词"]',
+      highlightEffect: 'glow'
+    },
+    {
+      word: 'recommend',
+      translation: '推荐',
+      pronunciation: '/ˌrekəˈmend/',
+      audioUrl: '/audio/movies/recommend.mp3',
+      start: 12.0,
+      end: 12.8,
+      dramaIndex: 1,
+      rescueVideoUrl: '/videos/rescue/recommend_mouth.mp4',
+      phoneticTips: '["重音在最后一个音节", "注意双写的m"]',
+      contextClues: '["建议或推荐", "及物动词"]',
+      highlightEffect: 'pulse'
+    },
+    {
+      word: 'action',
+      translation: '动作片',
+      pronunciation: '/ˈækʃən/',
+      audioUrl: '/audio/movies/action.mp3',
+      start: 18.1,
+      end: 18.8,
+      dramaIndex: 1,
+      rescueVideoUrl: '/videos/rescue/action_mouth.mp4',
+      phoneticTips: '["重音在第一个音节", "sh音要清晰"]',
+      contextClues: '["电影类型", "不可数名词"]',
+      highlightEffect: 'bounce'
+    },
+    {
+      word: 'theater',
+      translation: '影院',
+      pronunciation: '/ˈθiːətər/',
+      audioUrl: '/audio/movies/theater.mp3',
+      start: 25.2,
+      end: 25.9,
+      dramaIndex: 1,
+      rescueVideoUrl: '/videos/rescue/theater_mouth.mp4',
+      phoneticTips: '["th音要咬舌", "重音在第一个音节"]',
+      contextClues: '["电影院", "可数名词"]',
+      highlightEffect: 'glow'
+    },
 
-    // 电影主题 - 15个词汇
-    { word: 'movie', translation: '电影', audioUrl: '/audio/movies/movie.mp3', start: 3.0, end: 3.7, dramaIndex: 1 },
-    { word: 'ticket', translation: '票', audioUrl: '/audio/movies/ticket.mp3', start: 6.2, end: 6.9, dramaIndex: 1 },
-    { word: 'seat', translation: '座位', audioUrl: '/audio/movies/seat.mp3', start: 9.5, end: 10.2, dramaIndex: 1 },
-    { word: 'screen', translation: '屏幕', audioUrl: '/audio/movies/screen.mp3', start: 13.1, end: 13.8, dramaIndex: 1 },
-    { word: 'popcorn', translation: '爆米花', audioUrl: '/audio/movies/popcorn.mp3', start: 16.7, end: 17.5, dramaIndex: 1 },
-    { word: 'drink', translation: '饮料', audioUrl: '/audio/movies/drink.mp3', start: 20.3, end: 21.0, dramaIndex: 1 },
-    { word: 'action', translation: '动作片', audioUrl: '/audio/movies/action.mp3', start: 24.1, end: 24.8, dramaIndex: 1 },
-    { word: 'comedy', translation: '喜剧', audioUrl: '/audio/movies/comedy.mp3', start: 27.6, end: 28.4, dramaIndex: 1 },
-    { word: 'drama', translation: '剧情片', audioUrl: '/audio/movies/drama.mp3', start: 31.2, end: 31.9, dramaIndex: 1 },
-    { word: 'actor', translation: '演员', audioUrl: '/audio/movies/actor.mp3', start: 34.8, end: 35.5, dramaIndex: 1 },
-    { word: 'director', translation: '导演', audioUrl: '/audio/movies/director.mp3', start: 38.4, end: 39.2, dramaIndex: 1 },
-    { word: 'recommend', translation: '推荐', audioUrl: '/audio/movies/recommend.mp3', start: 42.0, end: 42.8, dramaIndex: 1 },
-    { word: 'review', translation: '评价', audioUrl: '/audio/movies/review.mp3', start: 45.6, end: 46.3, dramaIndex: 1 },
-    { word: 'theater', translation: '影院', audioUrl: '/audio/movies/theater.mp3', start: 49.2, end: 49.9, dramaIndex: 1 },
-    { word: 'queue', translation: '排队', audioUrl: '/audio/movies/queue.mp3', start: 52.8, end: 53.5, dramaIndex: 1 },
-
-    // 职场主题 - 15个词汇
-    { word: 'meeting', translation: '会议', audioUrl: '/audio/workplace/meeting.mp3', start: 2.8, end: 3.5, dramaIndex: 2 },
-    { word: 'presentation', translation: '演示', audioUrl: '/audio/workplace/presentation.mp3', start: 6.4, end: 7.3, dramaIndex: 2 },
-    { word: 'project', translation: '项目', audioUrl: '/audio/workplace/project.mp3', start: 10.1, end: 10.8, dramaIndex: 2 },
-    { word: 'deadline', translation: '截止日期', audioUrl: '/audio/workplace/deadline.mp3', start: 13.7, end: 14.5, dramaIndex: 2 },
-    { word: 'team', translation: '团队', audioUrl: '/audio/workplace/team.mp3', start: 17.3, end: 18.0, dramaIndex: 2 },
-    { word: 'manager', translation: '经理', audioUrl: '/audio/workplace/manager.mp3', start: 20.9, end: 21.6, dramaIndex: 2 },
-    { word: 'client', translation: '客户', audioUrl: '/audio/workplace/client.mp3', start: 24.5, end: 25.2, dramaIndex: 2 },
-    { word: 'report', translation: '报告', audioUrl: '/audio/workplace/report.mp3', start: 28.1, end: 28.8, dramaIndex: 2 },
-    { word: 'email', translation: '邮件', audioUrl: '/audio/workplace/email.mp3', start: 31.7, end: 32.4, dramaIndex: 2 },
-    { word: 'schedule', translation: '日程', audioUrl: '/audio/workplace/schedule.mp3', start: 35.3, end: 36.1, dramaIndex: 2 },
-    { word: 'budget', translation: '预算', audioUrl: '/audio/workplace/budget.mp3', start: 38.9, end: 39.6, dramaIndex: 2 },
-    { word: 'proposal', translation: '提案', audioUrl: '/audio/workplace/proposal.mp3', start: 42.5, end: 43.3, dramaIndex: 2 },
-    { word: 'feedback', translation: '反馈', audioUrl: '/audio/workplace/feedback.mp3', start: 46.1, end: 46.9, dramaIndex: 2 },
-    { word: 'colleague', translation: '同事', audioUrl: '/audio/workplace/colleague.mp3', start: 49.7, end: 50.5, dramaIndex: 2 },
-    { word: 'office', translation: '办公室', audioUrl: '/audio/workplace/office.mp3', start: 53.3, end: 54.0, dramaIndex: 2 }
+    // 职场主题 - 5个核心词汇
+    {
+      word: 'meeting',
+      translation: '会议',
+      pronunciation: '/ˈmiːtɪŋ/',
+      audioUrl: '/audio/workplace/meeting.mp3',
+      start: 2.8,
+      end: 3.5,
+      dramaIndex: 2,
+      rescueVideoUrl: '/videos/rescue/meeting_mouth.mp4',
+      phoneticTips: '["ee音要长", "ng音要鼻音"]',
+      contextClues: '["正式聚会讨论", "可数名词"]',
+      highlightEffect: 'bounce'
+    },
+    {
+      word: 'project',
+      translation: '项目',
+      pronunciation: '/ˈprɒdʒekt/',
+      audioUrl: '/audio/workplace/project.mp3',
+      start: 8.1,
+      end: 8.8,
+      dramaIndex: 2,
+      rescueVideoUrl: '/videos/rescue/project_mouth.mp4',
+      phoneticTips: '["重音在第一个音节", "j音要清晰"]',
+      contextClues: '["工作任务", "可数名词"]',
+      highlightEffect: 'glow'
+    },
+    {
+      word: 'deadline',
+      translation: '截止日期',
+      pronunciation: '/ˈdedlaɪn/',
+      audioUrl: '/audio/workplace/deadline.mp4',
+      start: 15.7,
+      end: 16.5,
+      dramaIndex: 2,
+      rescueVideoUrl: '/videos/rescue/deadline_mouth.mp4',
+      phoneticTips: '["重音在第一个音节", "注意复合词"]',
+      contextClues: '["最后期限", "可数名词"]',
+      highlightEffect: 'pulse'
+    },
+    {
+      word: 'feedback',
+      translation: '反馈',
+      pronunciation: '/ˈfiːdbæk/',
+      audioUrl: '/audio/workplace/feedback.mp3',
+      start: 22.1,
+      end: 22.9,
+      dramaIndex: 2,
+      rescueVideoUrl: '/videos/rescue/feedback_mouth.mp4',
+      phoneticTips: '["重音在第一个音节", "注意复合词"]',
+      contextClues: '["意见或建议", "不可数名词"]',
+      highlightEffect: 'bounce'
+    },
+    {
+      word: 'colleague',
+      translation: '同事',
+      pronunciation: '/ˈkɒliːɡ/',
+      audioUrl: '/audio/workplace/colleague.mp3',
+      start: 28.7,
+      end: 29.5,
+      dramaIndex: 2,
+      rescueVideoUrl: '/videos/rescue/colleague_mouth.mp4',
+      phoneticTips: '["重音在第一个音节", "gue不发音"]',
+      contextClues: '["工作伙伴", "可数名词"]',
+      highlightEffect: 'glow'
+    }
   ];
 
   // 创建关键词汇和vTPR视频片段
@@ -229,19 +420,19 @@ async function main() {
       const keywordData = keywordsData[i];
       const { dramaIndex, start, end, ...data } = keywordData;
 
-      // 创建关键词
+      // 创建关键词 - V2增强版
       const keyword = await prisma.keyword.create({
         data: {
           ...data,
           subtitleStart: start,
           subtitleEnd: end,
-          sortOrder: (i % 15) + 1, // 每个主题15个词汇
+          sortOrder: (i % 5) + 1, // V2: 每个剧集5个核心词汇
           dramaId: dramas[dramaIndex].id
         }
       });
       totalKeywords++;
 
-      // 为每个词汇创建4个vTPR视频片段
+      // 为每个词汇创建2-4个vTPR视频片段（V2要求）
       const videoClipsData = generateVideoClipsForKeyword(keywordData.word, dramaIndex);
 
       for (let j = 0; j < videoClipsData.length; j++) {
@@ -259,16 +450,17 @@ async function main() {
         totalVideoClips++;
       }
 
-      if (i % 15 === 14) { // 每完成一个主题
-        const themeName = ['Travel', 'Movies', 'Workplace'][Math.floor(i / 15)];
-        console.log(`  ✅ Completed ${themeName} theme: 15 keywords with 60 video clips`);
+      if (i % 5 === 4) { // V2: 每完成一个剧集（5个词汇）
+        const themeName = ['Travel', 'Movies', 'Workplace'][Math.floor(i / 5)];
+        console.log(`  ✅ Completed ${themeName} drama: 5 core keywords with 20 video clips`);
       }
     }
 
-    console.log(`✅ Created ${totalKeywords} keywords with ${totalVideoClips} video clips across all themes`);
+    console.log(`✅ Created ${totalKeywords} V2 keywords with ${totalVideoClips} video clips`);
+    console.log(`📊 V2 Structure: 3 themes × 1 drama × 5 keywords = ${totalKeywords} total keywords`);
   } catch (error) {
-    console.log('📝 Keywords and video clips data structure prepared (database not available)');
-    console.log(`📊 Prepared: ${keywordsData.length} keywords with ${keywordsData.length * 4} video clips`);
+    console.log('📝 V2 Keywords and video clips data structure prepared (database not available)');
+    console.log(`📊 V2 Prepared: ${keywordsData.length} keywords with ${keywordsData.length * 4} video clips`);
     totalKeywords = keywordsData.length;
     totalVideoClips = keywordsData.length * 4;
   }
