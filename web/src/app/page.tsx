@@ -2,8 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import EnhancedProgressDashboard from '../components/EnhancedProgressDashboard';
+import { ModernCard, CardHeader, CardTitle, CardDescription, CardContent } from '../components/ui/ModernCard';
+import Button from '../components/ui/button';
+import { colors, spacing, borderRadius, shadows, typography, animations } from '../styles/design-system';
 
-export default function Home() {
+export default function ModernHome() {
   const [isMobile, setIsMobile] = useState(false);
 
   // 检测移动设备
@@ -17,260 +20,246 @@ export default function Home() {
       return () => window.removeEventListener('resize', checkMobile);
     }
   }, []);
+
+  const containerStyles: React.CSSProperties = {
+    minHeight: '100vh',
+    background: colors.gradients.primary,
+    fontFamily: typography.fontFamily.sans.join(', '),
+    color: colors.white,
+    padding: isMobile ? spacing[4] : spacing[8],
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+  };
+
+  const heroSectionStyles: React.CSSProperties = {
+    textAlign: 'center',
+    marginBottom: spacing[16],
+    maxWidth: '1200px',
+    width: '100%',
+  };
+
+  const titleStyles: React.CSSProperties = {
+    fontSize: isMobile ? typography.fontSize['4xl'] : typography.fontSize['6xl'],
+    fontWeight: typography.fontWeight.bold,
+    marginBottom: spacing[6],
+    textShadow: shadows.md,
+    lineHeight: typography.lineHeight.tight,
+    background: 'linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%)',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+    backgroundClip: 'text',
+  };
+
+  const subtitleStyles: React.CSSProperties = {
+    fontSize: isMobile ? typography.fontSize.xl : typography.fontSize['2xl'],
+    opacity: 0.9,
+    marginBottom: spacing[8],
+    lineHeight: typography.lineHeight.relaxed,
+  };
+
+  const descriptionStyles: React.CSSProperties = {
+    fontSize: isMobile ? typography.fontSize.base : typography.fontSize.lg,
+    opacity: 0.8,
+    marginBottom: spacing[12],
+    lineHeight: typography.lineHeight.relaxed,
+    maxWidth: '600px',
+    margin: `0 auto ${spacing[12]} auto`,
+  };
+
+  const featuresGridStyles: React.CSSProperties = {
+    display: 'grid',
+    gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
+    gap: spacing[6],
+    maxWidth: '900px',
+    width: '100%',
+    marginBottom: spacing[16],
+  };
+
+  const mainContentStyles: React.CSSProperties = {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+    gap: spacing[8],
+    maxWidth: '1200px',
+    width: '100%',
+  };
+
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      fontFamily: 'system-ui, sans-serif',
-      color: 'white',
-      padding: isMobile ? '1rem' : '2rem'
-    }}>
-      {/* 主标题区域 */}
-      <div style={{
-        textAlign: 'center',
-        marginBottom: '3rem',
-        maxWidth: '1200px',
-        width: '100%'
-      }}>
-        <h1 style={{
-          fontSize: isMobile ? '2.5rem' : '3.5rem',
-          fontWeight: 'bold',
-          marginBottom: '1rem',
-          textShadow: '0 2px 4px rgba(0,0,0,0.3)',
-          lineHeight: 1.2
-        }}>
-          SmarTalk - 开芯说
-        </h1>
-        <p style={{
-          fontSize: isMobile ? '1.2rem' : '1.5rem',
-          opacity: 0.9,
-          marginBottom: '2rem',
-          lineHeight: 1.4,
-          padding: isMobile ? '0 1rem' : '0'
-        }}>
-          神经沉浸法英语学习平台
-        </p>
-        <p style={{
-          fontSize: '1.1rem',
-          opacity: 0.8,
-          maxWidth: '600px',
-          lineHeight: '1.6',
-          marginBottom: '3rem'
-        }}>
-          告别哑巴英语，30分钟体验无字幕理解的魔法时刻
-        </p>
-
-        {/* 核心价值主张 - 3个关键点 */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
-          gap: isMobile ? '1.5rem' : '2rem',
-          maxWidth: '900px',
-          margin: '0 auto'
-        }}>
-          {/* 问题识别 */}
-          <div style={{
-            background: 'rgba(255, 255, 255, 0.1)',
-            backdropFilter: 'blur(10px)',
-            borderRadius: '1rem',
-            padding: '1.5rem',
-            textAlign: 'center',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
-            transition: 'transform 0.3s ease'
-          }}>
-            <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>😔</div>
-            <h3 style={{
-              fontSize: '1.1rem',
-              fontWeight: 'bold',
-              color: 'white',
-              marginBottom: '0.5rem'
-            }}>
-              学了十几年还是不敢开口？
-            </h3>
-            <p style={{
-              fontSize: '0.9rem',
-              color: 'rgba(255, 255, 255, 0.8)',
-              lineHeight: 1.4
-            }}>
-              看美剧听不懂，和外国人交流大脑空白
-            </p>
-          </div>
-
-          {/* 解决方案 */}
-          <div style={{
-            background: 'rgba(255, 255, 255, 0.1)',
-            backdropFilter: 'blur(10px)',
-            borderRadius: '1rem',
-            padding: '1.5rem',
-            textAlign: 'center',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
-            transition: 'transform 0.3s ease'
-          }}>
-            <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>🧠</div>
-            <h3 style={{
-              fontSize: '1.1rem',
-              fontWeight: 'bold',
-              color: 'white',
-              marginBottom: '0.5rem'
-            }}>
-              神经沉浸法科学习得
-            </h3>
-            <p style={{
-              fontSize: '0.9rem',
-              color: 'rgba(255, 255, 255, 0.8)',
-              lineHeight: 1.4
-            }}>
-              基于克拉申理论，可理解输入(i+1)自然习得
-            </p>
-          </div>
-
-          {/* 魔法时刻 */}
-          <div style={{
-            background: 'rgba(255, 255, 255, 0.15)',
-            backdropFilter: 'blur(10px)',
-            borderRadius: '1rem',
-            padding: '1.5rem',
-            textAlign: 'center',
-            border: '2px solid rgba(255, 255, 255, 0.3)',
-            transform: isMobile ? 'none' : 'scale(1.02)',
-            boxShadow: '0 10px 30px rgba(0, 0, 0, 0.2)',
-            transition: 'transform 0.3s ease'
-          }}>
-            <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>✨</div>
-            <h3 style={{
-              fontSize: '1.1rem',
-              fontWeight: 'bold',
-              color: 'white',
-              marginBottom: '0.5rem'
-            }}>
-              30分钟见证奇迹
-            </h3>
-            <p style={{
-              fontSize: '0.9rem',
-              color: 'rgba(255, 255, 255, 0.9)',
-              lineHeight: 1.4
-            }}>
-              互动剧情+无字幕理解，体验语言习得魔法
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* 进度仪表板 */}
-      <div style={{
-        maxWidth: '1200px',
-        width: '100%',
-        marginBottom: '3rem'
-      }}>
-        <EnhancedProgressDashboard compact={true} />
-      </div>
-
-      {/* 功能卡片区域 */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-        gap: '2rem',
-        maxWidth: '1200px',
-        width: '100%'
-      }}>
-        {/* 学习中心卡片 */}
-        <div style={{
-          background: 'rgba(255, 255, 255, 0.1)',
-          backdropFilter: 'blur(10px)',
-          borderRadius: '1rem',
-          padding: '2rem',
-          textAlign: 'center',
-          border: '1px solid rgba(255, 255, 255, 0.2)'
-        }}>
-          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🎯</div>
-          <h3 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>学习中心</h3>
-          <p style={{ opacity: 0.8, marginBottom: '1.5rem' }}>
-            开始你的英语学习之旅，选择感兴趣的主题
+    <>
+      <style jsx>{`
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(30px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        @keyframes pulse {
+          0%, 100% {
+            opacity: 1;
+          }
+          50% {
+            opacity: 0.8;
+          }
+        }
+        
+        .hero-animation {
+          animation: fadeInUp 0.8s ease-out;
+        }
+        
+        .feature-card {
+          animation: fadeInUp 0.8s ease-out;
+          animation-delay: 0.2s;
+          animation-fill-mode: both;
+        }
+        
+        .main-card {
+          animation: fadeInUp 0.8s ease-out;
+          animation-delay: 0.4s;
+          animation-fill-mode: both;
+        }
+        
+        .cta-button {
+          animation: pulse 2s infinite;
+        }
+      `}</style>
+      
+      <div style={containerStyles}>
+        {/* Hero Section */}
+        <div style={heroSectionStyles} className="hero-animation">
+          <h1 style={titleStyles}>
+            SmarTalk - 开芯说
+          </h1>
+          <p style={subtitleStyles}>
+            神经沉浸法英语学习平台
           </p>
-          <a
-            href="/learning"
-            style={{
-              display: 'inline-block',
-              background: 'rgba(255, 255, 255, 0.2)',
-              color: 'white',
-              padding: '0.75rem 1.5rem',
-              borderRadius: '0.5rem',
-              textDecoration: 'none',
-              fontWeight: '500',
-              border: '1px solid rgba(255, 255, 255, 0.3)',
-              transition: 'all 0.3s ease'
-            }}
-          >
-            开始学习
-          </a>
-        </div>
-
-        {/* 系统状态卡片 */}
-        <div style={{
-          background: 'rgba(255, 255, 255, 0.1)',
-          backdropFilter: 'blur(10px)',
-          borderRadius: '1rem',
-          padding: '2rem',
-          textAlign: 'center',
-          border: '1px solid rgba(255, 255, 255, 0.2)'
-        }}>
-          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>⚡</div>
-          <h3 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>系统状态</h3>
-          <p style={{ opacity: 0.8, marginBottom: '1.5rem' }}>
-            检查系统健康状态和数据库连接
+          <p style={descriptionStyles}>
+            告别哑巴英语，30分钟体验无字幕理解的魔法时刻
           </p>
-          <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
-            <a
-              href="/api/health"
-              target="_blank"
-              style={{
-                display: 'inline-block',
-                background: 'rgba(255, 255, 255, 0.2)',
-                color: 'white',
-                padding: '0.5rem 1rem',
-                borderRadius: '0.5rem',
-                textDecoration: 'none',
-                fontSize: '0.9rem',
-                border: '1px solid rgba(255, 255, 255, 0.3)'
-              }}
-            >
-              健康检查
-            </a>
-            <a
-              href="/api/db-test"
-              target="_blank"
-              style={{
-                display: 'inline-block',
-                background: 'rgba(255, 255, 255, 0.2)',
-                color: 'white',
-                padding: '0.5rem 1rem',
-                borderRadius: '0.5rem',
-                textDecoration: 'none',
-                fontSize: '0.9rem',
-                border: '1px solid rgba(255, 255, 255, 0.3)'
-              }}
-            >
-              数据库测试
-            </a>
+
+          {/* 核心价值主张 */}
+          <div style={featuresGridStyles}>
+            <ModernCard variant="glass" hover className="feature-card">
+              <CardContent>
+                <div style={{ fontSize: '2.5rem', marginBottom: spacing[4] }}>😔</div>
+                <CardTitle as="h3" style={{ fontSize: typography.fontSize.lg, color: colors.white, marginBottom: spacing[2] }}>
+                  学了十几年还是不敢开口？
+                </CardTitle>
+                <CardDescription style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
+                  看美剧听不懂，和外国人交流大脑空白
+                </CardDescription>
+              </CardContent>
+            </ModernCard>
+
+            <ModernCard variant="glass" hover className="feature-card">
+              <CardContent>
+                <div style={{ fontSize: '2.5rem', marginBottom: spacing[4] }}>🧠</div>
+                <CardTitle as="h3" style={{ fontSize: typography.fontSize.lg, color: colors.white, marginBottom: spacing[2] }}>
+                  神经沉浸法科学习得
+                </CardTitle>
+                <CardDescription style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
+                  基于真实情境，可理解输入AI对话自然习得
+                </CardDescription>
+              </CardContent>
+            </ModernCard>
+
+            <ModernCard variant="glass" hover className="feature-card">
+              <CardContent>
+                <div style={{ fontSize: '2.5rem', marginBottom: spacing[4] }}>✨</div>
+                <CardTitle as="h3" style={{ fontSize: typography.fontSize.lg, color: colors.white, marginBottom: spacing[2] }}>
+                  30分钟证奇迹
+                </CardTitle>
+                <CardDescription style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
+                  互动电影式学习体验，突破听力魔法
+                </CardDescription>
+              </CardContent>
+            </ModernCard>
           </div>
         </div>
-      </div>
 
-      {/* 底部信息 */}
-      <div style={{
-        marginTop: '3rem',
-        textAlign: 'center',
-        opacity: 0.7
-      }}>
-        <p>🎉 部署成功！系统正在运行中</p>
-        <p style={{ fontSize: '0.9rem', marginTop: '0.5rem' }}>
-          版本 1.0.0 | 基于 Next.js 14 + Supabase
-        </p>
+        {/* 主要功能卡片 */}
+        <div style={mainContentStyles}>
+          {/* 学习中心卡片 */}
+          <ModernCard variant="glass" hover padding="lg" className="main-card">
+            <CardHeader>
+              <div style={{ fontSize: '3rem', marginBottom: spacing[4] }}>🎯</div>
+              <CardTitle style={{ color: colors.white }}>学习中心</CardTitle>
+              <CardDescription style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
+                开始你的英语学习之旅，选择感兴趣的主题
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button
+                variant="secondary"
+                size="lg"
+                fullWidth
+                className="cta-button"
+                onClick={() => window.location.href = '/learning'}
+              >
+                开始学习
+              </Button>
+            </CardContent>
+          </ModernCard>
+
+          {/* 系统状态卡片 */}
+          <ModernCard variant="glass" hover padding="lg" className="main-card">
+            <CardHeader>
+              <div style={{ fontSize: '3rem', marginBottom: spacing[4] }}>⚡</div>
+              <CardTitle style={{ color: colors.white }}>系统状态</CardTitle>
+              <CardDescription style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
+                检查系统健康状态和服务连接
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div style={{ display: 'flex', gap: spacing[3] }}>
+                <Button
+                  variant="success"
+                  size="md"
+                  onClick={() => window.location.href = '/health-check'}
+                >
+                  健康检查
+                </Button>
+                <Button
+                  variant="outline"
+                  size="md"
+                  onClick={() => window.location.href = '/system-status'}
+                >
+                  数据监控
+                </Button>
+              </div>
+            </CardContent>
+          </ModernCard>
+        </div>
+
+        {/* 学习进度仪表板 */}
+        <div style={{ 
+          maxWidth: '1200px', 
+          width: '100%', 
+          marginTop: spacing[16],
+          background: 'rgba(255, 255, 255, 0.1)',
+          borderRadius: borderRadius['2xl'],
+          padding: spacing[6],
+          backdropFilter: 'blur(10px)',
+          border: `1px solid rgba(255, 255, 255, 0.2)`,
+        }} className="main-card">
+          <EnhancedProgressDashboard />
+        </div>
+
+        {/* 页脚信息 */}
+        <div style={{
+          marginTop: spacing[16],
+          textAlign: 'center',
+          opacity: 0.7,
+          fontSize: typography.fontSize.sm,
+        }}>
+          <p>🚀 部署成功！系统正在运行中</p>
+          <p>版本 1.0.0 | 基于 Next.js 14 + Supabase</p>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

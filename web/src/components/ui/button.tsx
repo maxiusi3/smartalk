@@ -1,60 +1,175 @@
 'use client'
 
-import React from 'react'
+import React from 'react';
+import { colors, spacing, borderRadius, shadows, typography, animations } from '../../styles/design-system';
 
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost'
-  size?: 'sm' | 'md' | 'lg'
-  children: React.ReactNode
+export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: 'primary' | 'secondary' | 'success' | 'warning' | 'error' | 'ghost' | 'outline';
+  size?: 'sm' | 'md' | 'lg' | 'xl';
+  loading?: boolean;
+  icon?: React.ReactNode;
+  iconPosition?: 'left' | 'right';
+  fullWidth?: boolean;
+  children: React.ReactNode;
 }
 
-const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className = '', variant = 'primary', size = 'md', children, ...props }, ref) => {
-    const getButtonStyles = () => {
-      const baseStyles = {
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderRadius: '0.5rem',
-        fontWeight: '500',
-        cursor: 'pointer',
+const Button: React.FC<ButtonProps> = ({
+  variant = 'primary',
+  size = 'md',
+  loading = false,
+  icon,
+  iconPosition = 'left',
+  fullWidth = false,
+  disabled,
+  children,
+  className = '',
+  style = {},
+  ...props
+}) => {
+  // 变体样式
+  const getVariantStyles = () => {
+    const styles = {
+      primary: {
+        background: colors.gradients.primary,
+        color: colors.white,
         border: 'none',
-        transition: 'all 0.2s'
-      }
+        boxShadow: shadows.md,
+      },
+      secondary: {
+        background: colors.gradients.glass,
+        color: colors.gray[700],
+        border: `1px solid ${colors.gray[200]}`,
+        backdropFilter: 'blur(10px)',
+      },
+      success: {
+        background: colors.gradients.success,
+        color: colors.white,
+        border: 'none',
+      },
+      warning: {
+        background: colors.gradients.warning,
+        color: colors.white,
+        border: 'none',
+      },
+      error: {
+        background: colors.gradients.error,
+        color: colors.white,
+        border: 'none',
+      },
+      ghost: {
+        background: 'transparent',
+        color: colors.gray[700],
+        border: 'none',
+      },
+      outline: {
+        background: 'transparent',
+        color: colors.primary[600],
+        border: `2px solid ${colors.primary[600]}`,
+      },
+    };
+    return styles[variant];
+  };
 
-      const sizeStyles = {
-        sm: { padding: '0.5rem 1rem', fontSize: '0.875rem' },
-        md: { padding: '0.75rem 1.5rem', fontSize: '1rem' },
-        lg: { padding: '1rem 2rem', fontSize: '1.125rem' }
-      }
+  // 尺寸样式
+  const getSizeStyles = () => {
+    const styles = {
+      sm: {
+        padding: `${spacing[2]} ${spacing[3]}`,
+        fontSize: typography.fontSize.sm,
+        borderRadius: borderRadius.md,
+      },
+      md: {
+        padding: `${spacing[3]} ${spacing[4]}`,
+        fontSize: typography.fontSize.base,
+        borderRadius: borderRadius.lg,
+      },
+      lg: {
+        padding: `${spacing[4]} ${spacing[6]}`,
+        fontSize: typography.fontSize.lg,
+        borderRadius: borderRadius.xl,
+      },
+      xl: {
+        padding: `${spacing[5]} ${spacing[8]}`,
+        fontSize: typography.fontSize.xl,
+        borderRadius: borderRadius['2xl'],
+      },
+    };
+    return styles[size];
+  };
 
-      const variantStyles = {
-        primary: { background: '#2563eb', color: 'white' },
-        secondary: { background: '#f3f4f6', color: '#1f2937' },
-        outline: { background: 'transparent', color: '#374151', border: '1px solid #d1d5db' },
-        ghost: { background: 'transparent', color: '#374151' }
-      }
+  // 基础样式
+  const baseStyles: React.CSSProperties = {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing[2],
+    fontFamily: typography.fontFamily.sans.join(', '),
+    fontWeight: typography.fontWeight.medium,
+    lineHeight: typography.lineHeight.none,
+    textDecoration: 'none',
+    cursor: disabled || loading ? 'not-allowed' : 'pointer',
+    transition: `all ${animations.duration[200]} ${animations.easing.inOut}`,
+    outline: 'none',
+    position: 'relative',
+    overflow: 'hidden',
+    width: fullWidth ? '100%' : 'auto',
+    opacity: disabled || loading ? 0.6 : 1,
+    ...getSizeStyles(),
+    ...getVariantStyles(),
+    ...style,
+  };
 
-      return {
-        ...baseStyles,
-        ...sizeStyles[size],
-        ...variantStyles[variant]
-      }
-    }
+  return (
+    <>
+      <style jsx>{`
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+        .button:hover {
+          transform: translateY(-1px);
+          box-shadow: ${shadows.lg};
+        }
+        .button:active {
+          transform: translateY(0);
+        }
+        .button:focus {
+          box-shadow: ${shadows.focus};
+        }
+      `}</style>
 
-    return (
       <button
-        style={getButtonStyles()}
-        ref={ref}
+        className={`button ${className}`}
+        style={baseStyles}
+        disabled={disabled || loading}
         {...props}
       >
-        {children}
+        {loading && (
+          <div style={{
+            width: '1em',
+            height: '1em',
+            border: '2px solid transparent',
+            borderTop: '2px solid currentColor',
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite',
+          }} />
+        )}
+
+        {!loading && icon && iconPosition === 'left' && (
+          <span style={{ display: 'flex', alignItems: 'center' }}>
+            {icon}
+          </span>
+        )}
+
+        {!loading && <span>{children}</span>}
+
+        {!loading && icon && iconPosition === 'right' && (
+          <span style={{ display: 'flex', alignItems: 'center' }}>
+            {icon}
+          </span>
+        )}
       </button>
-    )
-  }
-)
+    </>
+  );
+};
 
-Button.displayName = 'Button'
-
-export { Button }
-export type { ButtonProps }
+export default Button;
