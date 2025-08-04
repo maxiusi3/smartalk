@@ -25,24 +25,6 @@ const nextConfig = {
     styledJsx: false,
   },
 
-  // 跳过中间件处理以避免预渲染错误
-  skipMiddlewareUrlNormalize: true,
-  skipTrailingSlashRedirect: true,
-
-  // 导出配置 - 禁用有问题的页面预渲染
-  exportPathMap: async function (defaultPathMap) {
-    const pathMap = { ...defaultPathMap };
-
-    // 删除有问题的页面，让它们在运行时渲染
-    delete pathMap['/focus-mode-validation'];
-    delete pathMap['/four-way-integration-test'];
-    delete pathMap['/performance-monitor'];
-    delete pathMap['/srs'];
-    delete pathMap['/test-focus-mode'];
-
-    return pathMap;
-  },
-
   // Webpack 配置
   webpack: (config, { dev, isServer }) => {
     // 解决 WebSocket 相关的警告
