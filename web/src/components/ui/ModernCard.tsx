@@ -92,13 +92,15 @@ const ModernCard: React.FC<ModernCardProps> = ({
 
   return (
     <>
-      <style jsx>{`
-        .modern-card:hover {
-          transform: ${hover ? 'translateY(-2px)' : 'none'};
-          box-shadow: ${hover ? shadows.xl : 'inherit'};
-        }
-      `}</style>
-      
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          .modern-card:hover {
+            transform: ${hover ? 'translateY(-2px)' : 'none'} !important;
+            box-shadow: ${hover ? shadows.xl : 'inherit'} !important;
+          }
+        `
+      }} />
+
       <div
         className={`modern-card ${className}`}
         style={baseStyles}

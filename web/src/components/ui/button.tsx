@@ -119,26 +119,43 @@ const Button: React.FC<ButtonProps> = ({
     ...style,
   };
 
+  // 合并悬停样式到基础样式中
+  const buttonStyles: React.CSSProperties = {
+    ...baseStyles,
+    ':hover': disabled || loading ? {} : {
+      transform: 'translateY(-1px)',
+      boxShadow: shadows.lg,
+    },
+    ':active': disabled || loading ? {} : {
+      transform: 'translateY(0)',
+    },
+    ':focus': {
+      boxShadow: shadows.focus,
+    },
+  };
+
   return (
     <>
-      <style jsx>{`
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-        .button:hover {
-          transform: translateY(-1px);
-          box-shadow: ${shadows.lg};
-        }
-        .button:active {
-          transform: translateY(0);
-        }
-        .button:focus {
-          box-shadow: ${shadows.focus};
-        }
-      `}</style>
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          @keyframes spin {
+            to { transform: rotate(360deg); }
+          }
+          .modern-button:hover:not(:disabled) {
+            transform: translateY(-1px) !important;
+            box-shadow: ${shadows.lg} !important;
+          }
+          .modern-button:active:not(:disabled) {
+            transform: translateY(0) !important;
+          }
+          .modern-button:focus {
+            box-shadow: ${shadows.focus} !important;
+          }
+        `
+      }} />
 
       <button
-        className={`button ${className}`}
+        className={`modern-button ${className}`}
         style={baseStyles}
         disabled={disabled || loading}
         {...props}

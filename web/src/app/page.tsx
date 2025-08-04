@@ -86,47 +86,49 @@ export default function ModernHome() {
 
   return (
     <>
-      <style jsx>{`
-        @keyframes fadeInUp {
-          from {
-            opacity: 0;
-            transform: translateY(30px);
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          @keyframes fadeInUp {
+            from {
+              opacity: 0;
+              transform: translateY(30px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
           }
-          to {
-            opacity: 1;
-            transform: translateY(0);
+
+          @keyframes pulse {
+            0%, 100% {
+              opacity: 1;
+            }
+            50% {
+              opacity: 0.8;
+            }
           }
-        }
-        
-        @keyframes pulse {
-          0%, 100% {
-            opacity: 1;
+
+          .hero-animation {
+            animation: fadeInUp 0.8s ease-out;
           }
-          50% {
-            opacity: 0.8;
+
+          .feature-card {
+            animation: fadeInUp 0.8s ease-out;
+            animation-delay: 0.2s;
+            animation-fill-mode: both;
           }
-        }
-        
-        .hero-animation {
-          animation: fadeInUp 0.8s ease-out;
-        }
-        
-        .feature-card {
-          animation: fadeInUp 0.8s ease-out;
-          animation-delay: 0.2s;
-          animation-fill-mode: both;
-        }
-        
-        .main-card {
-          animation: fadeInUp 0.8s ease-out;
-          animation-delay: 0.4s;
-          animation-fill-mode: both;
-        }
-        
-        .cta-button {
-          animation: pulse 2s infinite;
-        }
-      `}</style>
+
+          .main-card {
+            animation: fadeInUp 0.8s ease-out;
+            animation-delay: 0.4s;
+            animation-fill-mode: both;
+          }
+
+          .cta-button {
+            animation: pulse 2s infinite;
+          }
+        `
+      }} />
       
       <div style={containerStyles}>
         {/* Hero Section */}
