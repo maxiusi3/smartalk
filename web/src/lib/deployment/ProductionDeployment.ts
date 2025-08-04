@@ -774,7 +774,5 @@ ALLOWED_ORIGINS=${envVars.security.allowedOrigins.join(',')}
   }
 }
 
-}
-
 // 创建全局实例
 export const productionDeployment = ProductionDeployment.getInstance();

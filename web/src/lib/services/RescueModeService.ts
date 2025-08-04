@@ -558,7 +558,6 @@ export class RescueModeService {
       console.error('Failed to load rescue mode data:', error);
     }
   }
-}
 
   // ===== 公共API =====
 

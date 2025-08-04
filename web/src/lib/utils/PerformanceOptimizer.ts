@@ -75,6 +75,9 @@ export class PerformanceOptimizer {
    * 设置性能监控
    */
   private setupPerformanceMonitoring(): void {
+    // 检查是否在浏览器环境中
+    if (typeof window === 'undefined') return;
+
     // 监控内存使用
     if ('memory' in performance) {
       setInterval(() => {

@@ -274,9 +274,10 @@ export class AccessibilityHelper {
    * 检查元素是否可见
    */
   private isVisible(element: HTMLElement): boolean {
+    if (typeof window === 'undefined') return true;
     const style = window.getComputedStyle(element);
-    return style.display !== 'none' && 
-           style.visibility !== 'hidden' && 
+    return style.display !== 'none' &&
+           style.visibility !== 'hidden' &&
            style.opacity !== '0';
   }
 
@@ -419,6 +420,7 @@ export class AccessibilityHelper {
    * 检查是否偏好高对比度
    */
   private prefersHighContrast(): boolean {
+    if (typeof window === 'undefined') return false;
     return window.matchMedia('(prefers-contrast: high)').matches;
   }
 
@@ -426,6 +428,7 @@ export class AccessibilityHelper {
    * 检查是否偏好减少动画
    */
   private prefersReducedMotion(): boolean {
+    if (typeof window === 'undefined') return false;
     return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   }
 
