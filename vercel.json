@@ -2,9 +2,9 @@
   "version": 2,
   "name": "smartalk-web",
   "framework": "nextjs",
-  "buildCommand": "cd web && npm run build",
+  "buildCommand": "cd web && npm install && npm run build",
   "outputDirectory": "web/.next",
-  "installCommand": "cd web && npm install",
+  "installCommand": "npm install",
   "rootDirectory": "web",
   "build": {
     "env": {
@@ -13,10 +13,10 @@
     }
   },
   "functions": {
-    "src/app/api/**/*.ts": {
+    "web/src/app/api/**/*.ts": {
       "maxDuration": 30
     },
-    "src/pages/api/**/*.ts": {
+    "web/src/pages/api/**/*.ts": {
       "maxDuration": 30
     }
   },
