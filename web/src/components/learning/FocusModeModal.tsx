@@ -133,21 +133,18 @@ export default function FocusModeModal({
         </div>
       </div>
 
-      {/* CSS动画样式 */}
-      <style jsx>{`
-        @keyframes pulse {
-          0%, 100% {
-            transform: scale(1);
+      {/* CSS动画样式 - 转换为内联样式 */}
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
           }
-          50% {
-            transform: scale(1.02);
+          .animate-pulse {
+            animation: pulse 2s ease-in-out infinite;
           }
-        }
-        
-        .animate-pulse {
-          animation: pulse 2s ease-in-out infinite;
-        }
-      `}</style>
+        `
+      }} />
     </>
   );
 }
@@ -194,78 +191,54 @@ export function FocusModeHighlight({
         </div>
       )}
       
-      {/* 优化的发光动画样式 - 符合规范要求 */}
-      <style jsx>{`
-        .focus-mode-highlight {
-          position: relative;
-          animation: focusGlow 1s ease-in-out infinite;
-          border: 2px solid #fbbf24 !important;
-          border-radius: 8px !important;
-          transition: all 0.3s ease-in-out;
-        }
-
-        .focus-mode-highlight::before {
-          content: '';
-          position: absolute;
-          top: -4px;
-          left: -4px;
-          right: -4px;
-          bottom: -4px;
-          background: linear-gradient(45deg, #fbbf24, #f59e0b, #fbbf24);
-          border-radius: 12px;
-          z-index: -1;
-          animation: focusRotate 2s linear infinite;
-          opacity: 0.7;
-        }
-
-        @keyframes focusGlow {
-          0%, 100% {
-            box-shadow:
-              0 0 20px 5px rgba(251, 191, 36, 0.8),
-              0 0 40px 10px rgba(251, 191, 36, 0.4),
-              inset 0 0 20px rgba(251, 191, 36, 0.1);
-            transform: scale(1);
+      {/* 优化的发光动画样式 - 转换为内联样式 */}
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          .focus-mode-highlight {
+            position: relative;
+            animation: focusGlow 1s ease-in-out infinite;
+            border: 2px solid #fbbf24 !important;
+            border-radius: 8px !important;
+            transition: all 0.3s ease-in-out;
           }
-          50% {
-            box-shadow:
-              0 0 30px 8px rgba(251, 191, 36, 1),
-              0 0 60px 15px rgba(251, 191, 36, 0.6),
-              inset 0 0 30px rgba(251, 191, 36, 0.2);
-            transform: scale(1.02);
+          .focus-mode-highlight::before {
+            content: '';
+            position: absolute;
+            top: -4px; left: -4px; right: -4px; bottom: -4px;
+            background: linear-gradient(45deg, #fbbf24, #f59e0b, #fbbf24);
+            border-radius: 12px;
+            z-index: -1;
+            animation: focusRotate 2s linear infinite;
+            opacity: 0.7;
           }
-        }
-
-        @keyframes focusRotate {
-          0% {
-            transform: rotate(0deg);
+          @keyframes focusGlow {
+            0%, 100% {
+              box-shadow: 0 0 20px 5px rgba(251, 191, 36, 0.8), 0 0 40px 10px rgba(251, 191, 36, 0.4), inset 0 0 20px rgba(251, 191, 36, 0.1);
+              transform: scale(1);
+            }
+            50% {
+              box-shadow: 0 0 30px 8px rgba(251, 191, 36, 1), 0 0 60px 15px rgba(251, 191, 36, 0.6), inset 0 0 30px rgba(251, 191, 36, 0.2);
+              transform: scale(1.02);
+            }
           }
-          100% {
-            transform: rotate(360deg);
+          @keyframes focusRotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
           }
-        }
-
-        /* 脉冲效果增强 */
-        .focus-mode-highlight::after {
-          content: '✨';
-          position: absolute;
-          top: -10px;
-          right: -10px;
-          font-size: 20px;
-          animation: focusPulse 1s ease-in-out infinite;
-          z-index: 10;
-        }
-
-        @keyframes focusPulse {
-          0%, 100% {
-            opacity: 0.6;
-            transform: scale(0.8);
+          .focus-mode-highlight::after {
+            content: '✨';
+            position: absolute;
+            top: -10px; right: -10px;
+            font-size: 20px;
+            animation: focusPulse 1s ease-in-out infinite;
+            z-index: 10;
           }
-          50% {
-            opacity: 1;
-            transform: scale(1.2);
+          @keyframes focusPulse {
+            0%, 100% { opacity: 0.6; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.2); }
           }
-        }
-      `}</style>
+        `
+      }} />
     </div>
   );
 }

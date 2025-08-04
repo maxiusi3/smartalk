@@ -323,13 +323,15 @@ export default function MobileNavigation({
         </div>
       )}
 
-      {/* 页面内容间距补偿 */}
-      <style jsx global>{`
-        body {
-          padding-top: 60px;
-          padding-bottom: ${isMobile ? '70px' : '0'};
-        }
-      `}</style>
+      {/* 页面内容间距补偿 - 转换为内联样式 */}
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          body {
+            padding-top: 60px;
+            padding-bottom: ${isMobile ? '70px' : '0'};
+          }
+        `
+      }} />
     </>
   );
 }

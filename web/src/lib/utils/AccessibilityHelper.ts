@@ -88,6 +88,8 @@ export class AccessibilityHelper {
    * 初始化无障碍功能
    */
   private initializeAccessibility(): void {
+    if (typeof document === 'undefined') return;
+
     this.createAnnouncer();
     this.setupKeyboardNavigation();
     this.applyAccessibilityStyles();
@@ -98,6 +100,8 @@ export class AccessibilityHelper {
    * 创建屏幕阅读器公告器
    */
   private createAnnouncer(): void {
+    if (typeof document === 'undefined') return;
+
     if (!this.announcer) {
       this.announcer = document.createElement('div');
       this.announcer.setAttribute('aria-live', 'polite');
@@ -186,6 +190,7 @@ export class AccessibilityHelper {
    * 设置键盘导航
    */
   private setupKeyboardNavigation(): void {
+    if (typeof document === 'undefined') return;
     if (!this.config.keyboardNavigation) return;
 
     document.addEventListener('keydown', (event) => {
@@ -210,6 +215,8 @@ export class AccessibilityHelper {
    * 处理ESC键
    */
   private handleEscapeKey(): void {
+    if (typeof document === 'undefined') return;
+
     // 查找并关闭打开的模态框
     const modals = document.querySelectorAll('[role="dialog"], .modal, [data-modal]');
     modals.forEach(modal => {
@@ -226,6 +233,8 @@ export class AccessibilityHelper {
    * 处理Tab导航
    */
   private handleTabNavigation(event: KeyboardEvent): void {
+    if (typeof document === 'undefined') return;
+
     const focusableElements = this.getFocusableElements();
     const currentIndex = focusableElements.indexOf(document.activeElement as HTMLElement);
     
@@ -256,6 +265,8 @@ export class AccessibilityHelper {
    * 获取可聚焦元素
    */
   private getFocusableElements(): HTMLElement[] {
+    if (typeof document === 'undefined') return [];
+
     const selector = `
       button:not([disabled]),
       [href],
@@ -265,7 +276,7 @@ export class AccessibilityHelper {
       [tabindex]:not([tabindex="-1"]),
       [role="button"]:not([disabled])
     `;
-    
+
     return Array.from(document.querySelectorAll(selector))
       .filter(el => this.isVisible(el as HTMLElement)) as HTMLElement[];
   }
@@ -285,6 +296,8 @@ export class AccessibilityHelper {
    * 应用无障碍样式
    */
   private applyAccessibilityStyles(): void {
+    if (typeof document === 'undefined') return;
+
     const style = document.createElement('style');
     style.id = 'accessibility-styles';
     
@@ -349,7 +362,9 @@ export class AccessibilityHelper {
     }
 
     style.textContent = css;
-    document.head.appendChild(style);
+    if (document.head) {
+      document.head.appendChild(style);
+    }
   }
 
   /**
@@ -367,6 +382,8 @@ export class AccessibilityHelper {
    * 创建焦点陷阱
    */
   private createFocusTrap(): void {
+    if (typeof document === 'undefined') return;
+
     document.addEventListener('focusin', (event) => {
       const target = event.target as HTMLElement;
       const modal = target.closest('[role="dialog"], .modal');
@@ -408,12 +425,16 @@ export class AccessibilityHelper {
    * 添加跳过链接
    */
   private addSkipLinks(): void {
+    if (typeof document === 'undefined') return;
+
     const skipLink = document.createElement('a');
     skipLink.href = '#main-content';
     skipLink.className = 'skip-link';
     skipLink.textContent = '跳到主要内容';
-    
-    document.body.insertBefore(skipLink, document.body.firstChild);
+
+    if (document.body) {
+      document.body.insertBefore(skipLink, document.body.firstChild);
+    }
   }
 
   /**
@@ -445,6 +466,11 @@ export class AccessibilityHelper {
    * 创建ARIA描述
    */
   createAriaDescription(id: string, text: string): HTMLElement {
+    if (typeof document === 'undefined') {
+      // 返回一个虚拟元素用于SSR
+      return { textContent: text } as HTMLElement;
+    }
+
     let description = document.getElementById(id);
     if (!description) {
       description = document.createElement('div');
@@ -456,7 +482,9 @@ export class AccessibilityHelper {
         height: 1px;
         overflow: hidden;
       `;
-      document.body.appendChild(description);
+      if (document.body) {
+        document.body.appendChild(description);
+      }
     }
     description.textContent = text;
     return description;
@@ -484,10 +512,12 @@ export class AccessibilityHelper {
     if (this.announcer && this.announcer.parentNode) {
       this.announcer.parentNode.removeChild(this.announcer);
     }
-    
-    const accessibilityStyles = document.getElementById('accessibility-styles');
-    if (accessibilityStyles) {
-      accessibilityStyles.remove();
+
+    if (typeof document !== 'undefined') {
+      const accessibilityStyles = document.getElementById('accessibility-styles');
+      if (accessibilityStyles) {
+        accessibilityStyles.remove();
+      }
     }
   }
 }
