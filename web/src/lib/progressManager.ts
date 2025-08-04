@@ -87,6 +87,33 @@ export interface LearningStats {
   dailyGoalStreak: number;
   weeklyProgress: DailyProgress[];
   monthlyProgress: MonthlyProgress[];
+
+  // Focus Mode 统计
+  focusModeTriggered: number; // Focus Mode 触发次数
+  focusModeSuccessRate: number; // Focus Mode 成功率
+  averageErrorsBeforeFocus: number; // 触发Focus Mode前的平均错误次数
+
+  // 发音评估统计
+  pronunciationAssessments: number; // 发音评估总次数
+  averagePronunciationScore: number; // 平均发音分数
+  pronunciationImprovement: number; // 发音改进幅度
+  bestPronunciationScore: number; // 最佳发音分数
+
+  // Rescue Mode 统计
+  rescueModeTriggered: number; // Rescue Mode 触发次数
+  rescueModeSuccessRate: number; // Rescue Mode 成功率
+  averageRescueTime: number; // 平均救援时间（毫秒）
+  rescueModeEffectiveness: number; // 救援模式有效性 (0-100)
+
+  // SRS 统计
+  srsCardsTotal: number; // SRS卡片总数
+  srsCardsNew: number; // 新卡片数量
+  srsCardsLearning: number; // 学习中卡片数量
+  srsCardsReview: number; // 复习卡片数量
+  srsCardsGraduated: number; // 已掌握卡片数量
+  srsReviewsToday: number; // 今日复习次数
+  srsAccuracyRate: number; // SRS复习准确率
+  srsAverageInterval: number; // 平均复习间隔（天）
 }
 
 export interface DailyProgress {
@@ -185,7 +212,34 @@ class ProgressManager {
         improvementAreas: [],
         dailyGoalStreak: 0,
         weeklyProgress: [],
-        monthlyProgress: []
+        monthlyProgress: [],
+
+        // Focus Mode 统计初始值
+        focusModeTriggered: 0,
+        focusModeSuccessRate: 0,
+        averageErrorsBeforeFocus: 0,
+
+        // 发音评估统计初始值
+        pronunciationAssessments: 0,
+        averagePronunciationScore: 0,
+        pronunciationImprovement: 0,
+        bestPronunciationScore: 0,
+
+        // Rescue Mode 统计初始值
+        rescueModeTriggered: 0,
+        rescueModeSuccessRate: 0,
+        averageRescueTime: 0,
+        rescueModeEffectiveness: 0,
+
+        // SRS 统计初始值
+        srsCardsTotal: 0,
+        srsCardsNew: 0,
+        srsCardsLearning: 0,
+        srsCardsReview: 0,
+        srsCardsGraduated: 0,
+        srsReviewsToday: 0,
+        srsAccuracyRate: 0,
+        srsAverageInterval: 0
       },
       preferences: {
         dailyGoal: 30, // 30分钟默认目标
@@ -590,6 +644,319 @@ class ProgressManager {
       completed: completedStories + masteredKeywords,
       total: storyProgress.length + keywordProgress.length,
       accuracy: totalAttempts > 0 ? (correctAttempts / totalAttempts) * 100 : 0
+    };
+  }
+
+  // Focus Mode 相关方法
+
+  /**
+   * 记录Focus Mode触发事件
+   */
+  async recordFocusModeTriggered(userId: string, keywordId: string, consecutiveErrors: number): Promise<void> {
+    if (!this.userProgress) return;
+
+    this.userProgress.learningStats.focusModeTriggered += 1;
+
+    // 更新平均错误次数
+    const currentAvg = this.userProgress.learningStats.averageErrorsBeforeFocus;
+    const totalTriggers = this.userProgress.learningStats.focusModeTriggered;
+    this.userProgress.learningStats.averageErrorsBeforeFocus =
+      ((currentAvg * (totalTriggers - 1)) + consecutiveErrors) / totalTriggers;
+
+    await this.saveProgress();
+  }
+
+  /**
+   * 记录Focus Mode成功事件
+   */
+  async recordFocusModeSuccess(userId: string, keywordId: string): Promise<void> {
+    if (!this.userProgress) return;
+
+    // 更新成功率（这里简化处理，实际应该跟踪成功/失败比例）
+    const totalTriggers = this.userProgress.learningStats.focusModeTriggered;
+    if (totalTriggers > 0) {
+      // 假设每次成功调用都代表一次成功
+      this.userProgress.learningStats.focusModeSuccessRate =
+        Math.min(100, this.userProgress.learningStats.focusModeSuccessRate + (100 / totalTriggers));
+    }
+
+    await this.saveProgress();
+  }
+
+  /**
+   * 获取Focus Mode统计
+   */
+  getFocusModeStats(): {
+    triggered: number;
+    successRate: number;
+    averageErrorsBeforeFocus: number;
+  } {
+    if (!this.userProgress) {
+      return { triggered: 0, successRate: 0, averageErrorsBeforeFocus: 0 };
+    }
+
+    return {
+      triggered: this.userProgress.learningStats.focusModeTriggered,
+      successRate: this.userProgress.learningStats.focusModeSuccessRate,
+      averageErrorsBeforeFocus: this.userProgress.learningStats.averageErrorsBeforeFocus
+    };
+  }
+
+  // 发音评估相关方法
+
+  /**
+   * 记录发音评估结果
+   */
+  async recordPronunciationAssessment(
+    userId: string,
+    keywordId: string,
+    score: number,
+    assessmentTime: number
+  ): Promise<void> {
+    if (!this.userProgress) return;
+
+    const stats = this.userProgress.learningStats;
+
+    // 更新评估次数
+    stats.pronunciationAssessments += 1;
+
+    // 更新平均分数
+    const currentAvg = stats.averagePronunciationScore;
+    const totalAssessments = stats.pronunciationAssessments;
+    stats.averagePronunciationScore =
+      ((currentAvg * (totalAssessments - 1)) + score) / totalAssessments;
+
+    // 更新最佳分数
+    if (score > stats.bestPronunciationScore) {
+      stats.bestPronunciationScore = score;
+    }
+
+    // 计算改进幅度（最近10次vs最早10次的平均分差）
+    // 这里简化处理，实际应该维护历史分数数组
+    if (totalAssessments > 1) {
+      const improvement = score - currentAvg;
+      stats.pronunciationImprovement =
+        ((stats.pronunciationImprovement * (totalAssessments - 1)) + improvement) / totalAssessments;
+    }
+
+    await this.saveProgress();
+  }
+
+  /**
+   * 获取发音评估统计
+   */
+  getPronunciationStats(): {
+    assessments: number;
+    averageScore: number;
+    improvement: number;
+    bestScore: number;
+  } {
+    if (!this.userProgress) {
+      return { assessments: 0, averageScore: 0, improvement: 0, bestScore: 0 };
+    }
+
+    return {
+      assessments: this.userProgress.learningStats.pronunciationAssessments,
+      averageScore: Math.round(this.userProgress.learningStats.averagePronunciationScore),
+      improvement: Math.round(this.userProgress.learningStats.pronunciationImprovement),
+      bestScore: this.userProgress.learningStats.bestPronunciationScore
+    };
+  }
+
+  /**
+   * 获取综合学习统计（包含Focus Mode和发音评估）
+   */
+  getComprehensiveLearningStats(): {
+    focusMode: {
+      triggered: number;
+      successRate: number;
+      averageErrorsBeforeFocus: number;
+    };
+    pronunciation: {
+      assessments: number;
+      averageScore: number;
+      improvement: number;
+      bestScore: number;
+    };
+    rescueMode: {
+      triggered: number;
+      successRate: number;
+      averageRescueTime: number;
+      effectiveness: number;
+    };
+    srs: {
+      cardsTotal: number;
+      cardsNew: number;
+      cardsLearning: number;
+      cardsReview: number;
+      cardsGraduated: number;
+      reviewsToday: number;
+      accuracyRate: number;
+      averageInterval: number;
+    };
+    overall: {
+      totalSessions: number;
+      totalTimeSpent: number;
+      overallAccuracy: number;
+    };
+  } {
+    const focusStats = this.getFocusModeStats();
+    const pronunciationStats = this.getPronunciationStats();
+    const rescueStats = this.getRescueModeStats();
+    const srsStats = this.getSRSStats();
+
+    return {
+      focusMode: focusStats,
+      pronunciation: pronunciationStats,
+      rescueMode: rescueStats,
+      srs: srsStats,
+      overall: {
+        totalSessions: this.userProgress?.learningStats.totalSessions || 0,
+        totalTimeSpent: this.userProgress?.learningStats.totalTimeSpent || 0,
+        overallAccuracy: this.userProgress?.learningStats.overallAccuracy || 0
+      }
+    };
+  }
+
+  // Rescue Mode 相关方法
+
+  /**
+   * 记录Rescue Mode触发事件
+   */
+  async recordRescueModeTriggered(
+    userId: string,
+    keywordId: string,
+    consecutiveFailures: number
+  ): Promise<void> {
+    if (!this.userProgress) return;
+
+    this.userProgress.learningStats.rescueModeTriggered += 1;
+
+    await this.saveProgress();
+  }
+
+  /**
+   * 记录Rescue Mode成功事件
+   */
+  async recordRescueModeSuccess(
+    userId: string,
+    keywordId: string,
+    rescueTime: number,
+    wasEffective: boolean
+  ): Promise<void> {
+    if (!this.userProgress) return;
+
+    const stats = this.userProgress.learningStats;
+
+    // 更新成功率
+    const totalTriggers = stats.rescueModeTriggered;
+    if (totalTriggers > 0) {
+      // 简化的成功率计算
+      stats.rescueModeSuccessRate = Math.min(100, stats.rescueModeSuccessRate + (100 / totalTriggers));
+    }
+
+    // 更新平均救援时间
+    const currentAvgTime = stats.averageRescueTime;
+    stats.averageRescueTime = totalTriggers > 1
+      ? ((currentAvgTime * (totalTriggers - 1)) + rescueTime) / totalTriggers
+      : rescueTime;
+
+    // 更新有效性
+    if (wasEffective) {
+      stats.rescueModeEffectiveness = Math.min(100, stats.rescueModeEffectiveness + (100 / totalTriggers));
+    }
+
+    await this.saveProgress();
+  }
+
+  /**
+   * 获取Rescue Mode统计
+   */
+  getRescueModeStats(): {
+    triggered: number;
+    successRate: number;
+    averageRescueTime: number;
+    effectiveness: number;
+  } {
+    if (!this.userProgress) {
+      return { triggered: 0, successRate: 0, averageRescueTime: 0, effectiveness: 0 };
+    }
+
+    return {
+      triggered: this.userProgress.learningStats.rescueModeTriggered,
+      successRate: Math.round(this.userProgress.learningStats.rescueModeSuccessRate),
+      averageRescueTime: Math.round(this.userProgress.learningStats.averageRescueTime),
+      effectiveness: Math.round(this.userProgress.learningStats.rescueModeEffectiveness)
+    };
+  }
+
+  // SRS 相关方法
+
+  /**
+   * 更新SRS统计数据
+   */
+  async updateSRSStats(srsStatistics: {
+    totalCards: number;
+    newCards: number;
+    learningCards: number;
+    reviewCards: number;
+    graduatedCards: number;
+    todayReviews: number;
+    overallAccuracy: number;
+    averageInterval: number;
+  }): Promise<void> {
+    if (!this.userProgress) return;
+
+    const stats = this.userProgress.learningStats;
+
+    // 更新SRS统计数据
+    stats.srsCardsTotal = srsStatistics.totalCards;
+    stats.srsCardsNew = srsStatistics.newCards;
+    stats.srsCardsLearning = srsStatistics.learningCards;
+    stats.srsCardsReview = srsStatistics.reviewCards;
+    stats.srsCardsGraduated = srsStatistics.graduatedCards;
+    stats.srsReviewsToday = srsStatistics.todayReviews;
+    stats.srsAccuracyRate = srsStatistics.overallAccuracy;
+    stats.srsAverageInterval = srsStatistics.averageInterval;
+
+    await this.saveProgress();
+  }
+
+  /**
+   * 获取SRS统计
+   */
+  getSRSStats(): {
+    cardsTotal: number;
+    cardsNew: number;
+    cardsLearning: number;
+    cardsReview: number;
+    cardsGraduated: number;
+    reviewsToday: number;
+    accuracyRate: number;
+    averageInterval: number;
+  } {
+    if (!this.userProgress) {
+      return {
+        cardsTotal: 0,
+        cardsNew: 0,
+        cardsLearning: 0,
+        cardsReview: 0,
+        cardsGraduated: 0,
+        reviewsToday: 0,
+        accuracyRate: 0,
+        averageInterval: 0
+      };
+    }
+
+    return {
+      cardsTotal: this.userProgress.learningStats.srsCardsTotal,
+      cardsNew: this.userProgress.learningStats.srsCardsNew,
+      cardsLearning: this.userProgress.learningStats.srsCardsLearning,
+      cardsReview: this.userProgress.learningStats.srsCardsReview,
+      cardsGraduated: this.userProgress.learningStats.srsCardsGraduated,
+      reviewsToday: this.userProgress.learningStats.srsReviewsToday,
+      accuracyRate: Math.round(this.userProgress.learningStats.srsAccuracyRate),
+      averageInterval: Math.round(this.userProgress.learningStats.srsAverageInterval)
     };
   }
 }

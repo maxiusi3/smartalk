@@ -1,26 +1,43 @@
 /**
  * VTPR 视频选项组件
  * 显示视频预览和交互功能
+ *
+ * 重构改进:
+ * - 使用React.memo优化性能
+ * - 使用useCallback缓存函数引用
+ * - 改进TypeScript类型定义
+ * - 优化内存管理
  */
 
 'use client'
 
-import { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback, memo } from 'react';
 
+// 改进的TypeScript接口定义
 interface VTPRVideoOptionProps {
-  id: string;
-  videoUrl: string;
-  thumbnailUrl?: string;
-  description: string;
-  isCorrect: boolean;
-  isSelected: boolean;
-  optionLabel: string;
-  themeColor: string;
-  onSelect: (id: string) => void;
-  disabled?: boolean;
+  readonly id: string;
+  readonly videoUrl: string;
+  readonly thumbnailUrl?: string;
+  readonly description: string;
+  readonly isCorrect: boolean;
+  readonly isSelected: boolean;
+  readonly optionLabel: string;
+  readonly themeColor: string;
+  readonly onSelect: (id: string) => void;
+  readonly disabled?: boolean;
+  readonly onVideoLoadTime?: (loadTime: number) => void;
 }
 
-export default function VTPRVideoOption({
+// 内部状态接口
+interface VideoState {
+  isHovered: boolean;
+  isVideoLoaded: boolean;
+  showPreview: boolean;
+  loadStartTime: number | null;
+}
+
+// 使用React.memo优化组件性能
+const VTPRVideoOption = memo<VTPRVideoOptionProps>(function VTPRVideoOption({
   id,
   videoUrl,
   thumbnailUrl,
@@ -30,76 +47,103 @@ export default function VTPRVideoOption({
   optionLabel,
   themeColor,
   onSelect,
-  disabled = false
-}: VTPRVideoOptionProps) {
-  const [isHovered, setIsHovered] = useState(false);
-  const [isVideoLoaded, setIsVideoLoaded] = useState(false);
-  const [showPreview, setShowPreview] = useState(false);
+  disabled = false,
+  onVideoLoadTime
+}) {
+  // 使用单一状态对象减少重渲染
+  const [videoState, setVideoState] = useState<VideoState>({
+    isHovered: false,
+    isVideoLoaded: false,
+    showPreview: false,
+    loadStartTime: null
+  });
+
   const videoRef = useRef<HTMLVideoElement>(null);
   const previewTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  // 使用useCallback缓存事件处理函数
+  const handleLoadStart = useCallback(() => {
+    setVideoState(prev => ({ ...prev, loadStartTime: Date.now() }));
+  }, []);
+
+  const handleLoadedMetadata = useCallback(() => {
+    setVideoState(prev => {
+      const newState = { ...prev, isVideoLoaded: true };
+
+      // 记录视频加载时间
+      if (prev.loadStartTime && onVideoLoadTime) {
+        const loadTime = Date.now() - prev.loadStartTime;
+        onVideoLoadTime(loadTime);
+      }
+
+      return newState;
+    });
+  }, [onVideoLoadTime]);
+
   // 预加载视频元数据
   useEffect(() => {
-    if (videoRef.current) {
-      const video = videoRef.current;
-      
-      const handleLoadedMetadata = () => {
-        setIsVideoLoaded(true);
-      };
+    const video = videoRef.current;
+    if (!video) return;
 
-      video.addEventListener('loadedmetadata', handleLoadedMetadata);
-      
-      return () => {
-        video.removeEventListener('loadedmetadata', handleLoadedMetadata);
-      };
+    video.addEventListener('loadstart', handleLoadStart);
+    video.addEventListener('loadedmetadata', handleLoadedMetadata);
+
+    return () => {
+      video.removeEventListener('loadstart', handleLoadStart);
+      video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+    };
+  }, [handleLoadStart, handleLoadedMetadata]);
+
+  // 使用useCallback优化鼠标事件处理
+  const handleMouseEnter = useCallback(() => {
+    setVideoState(prev => ({ ...prev, isHovered: true }));
+
+    // 延迟显示预览，避免快速移动时频繁触发
+    previewTimeoutRef.current = setTimeout(() => {
+      setVideoState(prev => {
+        if (prev.isVideoLoaded && videoRef.current) {
+          videoRef.current.currentTime = 2; // 跳到2秒处显示预览
+        }
+        return { ...prev, showPreview: true };
+      });
+    }, 500);
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    setVideoState(prev => ({ ...prev, isHovered: false, showPreview: false }));
+
+    if (previewTimeoutRef.current) {
+      clearTimeout(previewTimeoutRef.current);
+      previewTimeoutRef.current = null;
+    }
+
+    const video = videoRef.current;
+    if (video) {
+      video.pause();
+      video.currentTime = 0;
     }
   }, []);
 
-  // 处理鼠标悬停预览
-  const handleMouseEnter = () => {
-    setIsHovered(true);
-    
-    // 延迟显示预览，避免快速移动时频繁触发
-    previewTimeoutRef.current = setTimeout(() => {
-      setShowPreview(true);
-      if (videoRef.current && isVideoLoaded) {
-        videoRef.current.currentTime = 2; // 跳到2秒处显示预览
-      }
-    }, 500);
-  };
-
-  const handleMouseLeave = () => {
-    setIsHovered(false);
-    setShowPreview(false);
-    
-    if (previewTimeoutRef.current) {
-      clearTimeout(previewTimeoutRef.current);
+  // 使用useCallback优化预览播放和点击处理
+  const handlePreviewPlay = useCallback(() => {
+    const video = videoRef.current;
+    if (video && videoState.showPreview) {
+      video.play().catch(console.error);
     }
-    
-    if (videoRef.current) {
-      videoRef.current.pause();
-      videoRef.current.currentTime = 0;
-    }
-  };
+  }, [videoState.showPreview]);
 
-  // 处理预览播放
-  const handlePreviewPlay = () => {
-    if (videoRef.current && showPreview) {
-      videoRef.current.play().catch(console.error);
-    }
-  };
-
-  useEffect(() => {
-    if (showPreview) {
-      handlePreviewPlay();
-    }
-  }, [showPreview]);
-
-  const handleClick = () => {
+  const handleClick = useCallback(() => {
     if (!disabled) {
       onSelect(id);
     }
-  };
+  }, [disabled, onSelect, id]);
+
+  // 优化预览播放效果
+  useEffect(() => {
+    if (videoState.showPreview) {
+      handlePreviewPlay();
+    }
+  }, [videoState.showPreview, handlePreviewPlay]);
 
   return (
     <div
@@ -116,9 +160,9 @@ export default function VTPRVideoOption({
           : '1px solid rgba(255, 255, 255, 0.2)',
         position: 'relative',
         opacity: disabled ? 0.6 : 1,
-        transform: isHovered && !disabled ? 'translateY(-5px)' : 'translateY(0)',
-        boxShadow: isHovered && !disabled 
-          ? '0 15px 35px rgba(0, 0, 0, 0.3)' 
+        transform: videoState.isHovered && !disabled ? 'translateY(-5px)' : 'translateY(0)',
+        boxShadow: videoState.isHovered && !disabled
+          ? '0 15px 35px rgba(0, 0, 0, 0.3)'
           : '0 5px 15px rgba(0, 0, 0, 0.1)'
       }}
       onClick={handleClick}
@@ -157,7 +201,7 @@ export default function VTPRVideoOption({
         overflow: 'hidden'
       }}>
         {/* 缩略图 */}
-        {thumbnailUrl && !showPreview && (
+        {thumbnailUrl && !videoState.showPreview && (
           <img
             src={thumbnailUrl}
             alt={description}
@@ -186,13 +230,13 @@ export default function VTPRVideoOption({
             position: 'absolute',
             top: 0,
             left: 0,
-            opacity: showPreview ? 1 : 0,
+            opacity: videoState.showPreview ? 1 : 0,
             transition: 'opacity 0.3s ease'
           }}
         />
 
         {/* 播放图标覆盖层 */}
-        {!showPreview && (
+        {!videoState.showPreview && (
           <div style={{
             position: 'absolute',
             top: '50%',
@@ -214,7 +258,7 @@ export default function VTPRVideoOption({
         )}
 
         {/* 加载指示器 */}
-        {!isVideoLoaded && (
+        {!videoState.isVideoLoaded && (
           <div style={{
             position: 'absolute',
             top: '50%',
@@ -228,7 +272,7 @@ export default function VTPRVideoOption({
         )}
 
         {/* 预览提示 */}
-        {isHovered && !showPreview && (
+        {videoState.isHovered && !videoState.showPreview && (
           <div style={{
             position: 'absolute',
             bottom: '1rem',
@@ -323,4 +367,9 @@ export default function VTPRVideoOption({
       )}
     </div>
   );
-}
+});
+
+// 设置displayName用于调试
+VTPRVideoOption.displayName = 'VTPRVideoOption';
+
+export default VTPRVideoOption;
